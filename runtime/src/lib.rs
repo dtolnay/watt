@@ -1,24 +1,12 @@
 #[macro_use]
-mod interpreter;
-mod binary;
-mod error;
-mod ops;
-mod runtime;
-mod valid;
-
-#[cfg(not(feature = "test"))]
-mod ast;
-#[cfg(feature = "test")]
+pub mod interpreter;
 pub mod ast;
-
-#[cfg(not(feature = "test"))]
-mod types;
-#[cfg(feature = "test")]
+mod binary;
+pub mod error;
+pub mod ops;
+pub mod runtime;
 pub mod types;
-
-#[cfg(not(feature = "test"))]
-mod values;
-#[cfg(feature = "test")]
+mod valid;
 pub mod values;
 
 pub use crate::ast::Module;
