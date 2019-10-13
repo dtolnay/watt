@@ -1,0 +1,10 @@
+[package]
+name = "rust-wasm"
+version = "0.1.0"
+authors = ["Yoann Blein <yoann.blein@free.fr>", "Hugo Guiroux <gx.hugo@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+
+[dev-dependencies]
+hexf-parse = "0.1.0"
