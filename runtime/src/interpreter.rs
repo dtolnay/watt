@@ -824,7 +824,9 @@ impl Interpreter {
         _globals: &mut GlobalInstStore,
         _mems: &mut MemInstStore,
     ) -> IntResult {
+        /*
         let stack_before_call = self.stack.len();
+        */
 
         if let Some(err) = (f_inst.hostcode)(&mut self.stack) {
             return Err(Trap {
@@ -833,8 +835,10 @@ impl Interpreter {
         }
 
         // Stack must be valid
+        /*
         assert_eq!(self.stack.len(), stack_before_call);
         for (arg, type_) in self.stack[stack_before_call..]
+
             .iter()
             .zip(f_inst.type_.args.iter())
         {
@@ -853,6 +857,7 @@ impl Interpreter {
         let drain_end = self.stack.len() - f_inst.type_.result.len();
         self.stack
             .drain((stack_before_call - f_inst.type_.args.len())..drain_end);
+        */
 
         Ok(Continue)
     }
