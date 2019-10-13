@@ -1,10 +1,9 @@
-use ops::IntOp;
+use crate::ast::*;
+use crate::ops::IntOp;
+use crate::types;
+use crate::values::Value;
 use std::io::Read;
 use std::{i32, i64, io};
-
-use ast::*;
-use types;
-use values::Value;
 
 const MAGIC: u32 = 0x6d736100;
 
@@ -249,10 +248,10 @@ impl<R: Read> Decoder<R> {
     }
 
     fn read_meta_instr(&mut self) -> DecodeResult<MetaInstr> {
-        use ast::Instr::*;
-        use types::Float::*;
-        use types::Int::*;
-        use types::Value::*;
+        use crate::ast::Instr::*;
+        use crate::types::Float::*;
+        use crate::types::Int::*;
+        use crate::types::Value::*;
 
         let opcode = self.read_byte()?;
 
@@ -850,7 +849,7 @@ enum MetaInstr {
 }
 
 fn decode_value_type(b: u8) -> DecodeResult<types::Value> {
-    use types::*;
+    use crate::types::*;
 
     match b {
         0x7f => Ok(Value::Int(Int::I32)),

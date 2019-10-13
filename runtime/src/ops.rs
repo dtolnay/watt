@@ -1,8 +1,5 @@
-use std;
-use std::ops::*;
-
-use core;
 use core::ptr::copy_nonoverlapping;
+use std::ops::*;
 
 pub trait IntOp<S = Self> {
     type FloatType;

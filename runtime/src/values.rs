@@ -1,4 +1,4 @@
-use types;
+use crate::types;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Value {

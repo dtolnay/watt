@@ -14,13 +14,13 @@ mod valid;
 pub mod ast;
 pub mod types;
 pub mod values;
-pub use runtime::{
+
+pub use crate::runtime::{
     ExternVal, FuncAddr, GlobalAddr, HostFunc, MemAddr, ModuleInst, TableAddr, PAGE_SIZE,
 };
 
-use interpreter::{eval_const_expr, Trap, TrapOrigin};
-use runtime::*;
-
+use crate::interpreter::{eval_const_expr, Trap, TrapOrigin};
+use crate::runtime::*;
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::rc::Rc;
@@ -112,7 +112,7 @@ pub fn module_exports<'a>(
     let mut mem_import_types = Vec::new();
     let mut global_import_types = Vec::new();
     for import in &module.imports {
-        use ast::*;
+        use crate::ast::*;
         match import.desc {
             ImportDesc::Func(idx) => func_import_types.push(module.types[idx as usize].clone()),
             ImportDesc::Table(ref type_) => table_import_types.push(type_.clone()),
@@ -122,8 +122,8 @@ pub fn module_exports<'a>(
     }
 
     module.exports.iter().map(move |export| {
-        use ast::*;
-        use types::*;
+        use crate::ast::*;
+        use crate::types::*;
         let export_type = match export.desc {
             ExportDesc::Func(idx) => {
                 let len = func_import_types.len();

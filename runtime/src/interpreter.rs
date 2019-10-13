@@ -1,9 +1,8 @@
-use ast::*;
-use ops::{BitsOp, FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
-use runtime::*;
-use types;
-use values::Value;
-
+use crate::ast::*;
+use crate::ops::{BitsOp, FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
+use crate::runtime::*;
+use crate::types;
+use crate::values::Value;
 use std::rc::Rc;
 
 /// A struct storing the state of the current interpreted
@@ -94,7 +93,7 @@ impl Interpreter {
         globals: &mut GlobalInstStore,
         mems: &mut MemInstStore,
     ) -> IntResult {
-        use ast::Instr::*;
+        use crate::ast::Instr::*;
 
         // Note: passing VM components mutability is case by case
         match *instr {
@@ -543,8 +542,8 @@ impl Interpreter {
 
     /// Dispatch a ConvertOp
     fn cvtop(&mut self, op: &ConvertOp) -> IntResult {
-        use types::Value as tv;
-        use types::{Float, Int};
+        use crate::types::Value as tv;
+        use crate::types::{Float, Int};
 
         let c = self.stack.pop().unwrap();
         let cls = |&op, &c| {
@@ -968,8 +967,8 @@ impl Interpreter {
         memories: &MemInstStore,
         frame_memories: &[MemAddr],
     ) -> IntResult {
-        use types::Value as Tv;
-        use types::{Float, Int};
+        use crate::types::Value as Tv;
+        use crate::types::{Float, Int};
 
         let mem = &memories[frame_memories[0]];
         let offset = match self.stack.pop().unwrap() {
@@ -1018,8 +1017,8 @@ impl Interpreter {
         memories: &mut MemInstStore,
         frame_memories: &[MemAddr],
     ) -> IntResult {
-        use types::Value as Tv;
-        use types::{Float, Int};
+        use crate::types::Value as Tv;
+        use crate::types::{Float, Int};
 
         let mem = &mut memories[frame_memories[0]];
         let c = self.stack.pop().unwrap();

@@ -1,7 +1,4 @@
-use ast;
-use types;
-use values;
-
+use crate::{ast, types, values};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
