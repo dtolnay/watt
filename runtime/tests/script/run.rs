@@ -1,4 +1,4 @@
-use script::*;
+use crate::script::*;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};

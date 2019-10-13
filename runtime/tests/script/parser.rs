@@ -1,5 +1,5 @@
+use crate::script::*;
 use hexf_parse::{parse_hexf32, parse_hexf64};
-use script::*;
 use std::convert::TryFrom;
 use std::iter::Peekable;
 use std::str::{CharIndices, FromStr};
@@ -107,7 +107,7 @@ impl<'a> Parser<'a> {
     }
 
     fn cmd(&mut self) -> Cmd {
-        use script::Assertion::*;
+        use crate::script::Assertion::*;
 
         self.open();
         let cmd = match self.next_token() {

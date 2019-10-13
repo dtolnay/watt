@@ -6,6 +6,7 @@ authors = [
     "Hugo Guiroux <gx.hugo@gmail.com>",
     "David Tolnay <dtolnay@gmail.com>",
 ]
+edition = "2018"
 publish = false
 
 [[test]]
