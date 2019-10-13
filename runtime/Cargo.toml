@@ -3,6 +3,3 @@ name = "watt-runtime"
 version = "0.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 publish = false
-
-[dev-dependencies]
-hexf-parse = "0.1.0"

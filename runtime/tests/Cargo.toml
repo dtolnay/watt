@@ -1,0 +1,17 @@
+[package]
+name = "watt-runtime-test-suite"
+version = "0.0.0"
+authors = [
+    "Yoann Blein <yoann.blein@free.fr>",
+    "Hugo Guiroux <gx.hugo@gmail.com>",
+    "David Tolnay <dtolnay@gmail.com>",
+]
+publish = false
+
+[[test]]
+name = "run_suite"
+path = "run_suite.rs"
+
+[dev-dependencies]
+hexf-parse = "0.1.0"
+watt-runtime = { path = ".." }

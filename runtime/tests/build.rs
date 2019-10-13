@@ -9,7 +9,7 @@ fn main() {
     let dest_path = Path::new(&out_dir).join("test_suite.rs");
     let mut f = File::create(dest_path).unwrap();
 
-    for entry in fs::read_dir("tests/suite").unwrap() {
+    for entry in fs::read_dir("suite").unwrap() {
         let path = entry.unwrap().path();
         let name = path
             .file_name()
