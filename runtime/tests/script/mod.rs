@@ -1,7 +1,7 @@
 mod parser;
 mod run;
 
-use rust_wasm::*;
+use watt_runtime::*;
 
 pub use self::run::*;
 

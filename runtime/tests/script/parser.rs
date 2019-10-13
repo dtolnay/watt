@@ -3,8 +3,8 @@ use std::iter::Peekable;
 use std::str::{FromStr, CharIndices};
 use std::{f32, f64};
 use hexf_parse::{parse_hexf32, parse_hexf64};
-use rust_wasm::values::Value;
 use script::*;
+use watt_runtime::values::Value;
 
 struct Lexer<'a> {
 	src: &'a str,

@@ -3,8 +3,8 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{Cursor, Read};
 use std::collections::HashMap;
-use rust_wasm::*;
 use script::*;
+use watt_runtime::*;
 
 type Exports = HashMap<String, ExternVal>;
 

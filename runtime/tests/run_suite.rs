@@ -1,7 +1,7 @@
 #![feature(try_from)]
 
-extern crate rust_wasm;
 extern crate hexf_parse;
+extern crate watt_runtime;
 
 mod script;
 
