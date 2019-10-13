@@ -1,6 +1,7 @@
 #[macro_use]
 mod interpreter;
 mod binary;
+mod error;
 mod ops;
 mod runtime;
 mod valid;
@@ -21,6 +22,7 @@ mod values;
 pub mod values;
 
 pub use crate::ast::Module;
+pub use crate::error::Error;
 pub use crate::runtime::{ExternVal, HostFunc};
 pub use crate::types::Extern;
 pub use crate::values::Value;
@@ -28,6 +30,7 @@ pub use crate::values::Value;
 #[cfg(feature = "test")]
 pub use crate::runtime::{FuncAddr, GlobalAddr, MemAddr, ModuleInst, TableAddr, PAGE_SIZE};
 
+use crate::error::E;
 use crate::interpreter::{eval_const_expr, Trap, TrapOrigin};
 use crate::runtime::*;
 use std::collections::HashMap;
@@ -44,28 +47,6 @@ pub struct Store {
     types_map: TypeHashMap,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    DecodeModuleFailed,
-    NotEnoughExternVal,
-    UnknownImport,
-    ImportTypeMismatch,
-    ElemOffsetTooLarge(usize),
-    DataOffsetTooLarge(usize),
-    NotEnoughArgument,
-    ArgumentTypeMismatch,
-    CodeTrapped(Trap),
-    InvalidModule,
-    ExportNotFound,
-    InvalidTableRead,
-    InvalidTableWrite,
-    InvalidMemoryRead,
-    InvalidMemoryWrite,
-    GlobalImmutable,
-    GrowMemoryFailed,
-    StackOverflow,
-}
-
 /// Return the empty store
 pub fn init_store() -> Store {
     Store {
@@ -80,7 +61,7 @@ pub fn init_store() -> Store {
 
 /// Decode a binary module
 pub fn decode_module<R: Read + Seek>(reader: R) -> Result<ast::Module, Error> {
-    binary::decode(reader).map_err(|_| Error::DecodeModuleFailed)
+    binary::decode(reader).map_err(|_| Error(E::DecodeModuleFailed))
 }
 
 /// Validate a module
@@ -185,7 +166,7 @@ pub fn get_export(inst: &ModuleInst, name: &str) -> Result<ExternVal, Error> {
             return Ok(export.value);
         }
     }
-    Err(Error::ExportNotFound)
+    Err(Error(E::ExportNotFound))
 }
 
 /// Allocate a host function
@@ -221,7 +202,7 @@ pub fn invoke_func(
     };
 
     if functype.args.len() != args.len() {
-        return Err(Error::NotEnoughArgument);
+        return Err(Error(E::NotEnoughArgument));
     }
 
     // typecheck arguments
@@ -230,7 +211,7 @@ pub fn invoke_func(
         .zip(&functype.args)
         .all(|(val, &type_)| val.type_() == type_)
     {
-        return Err(Error::ArgumentTypeMismatch);
+        return Err(Error(E::ArgumentTypeMismatch));
     }
 
     let mut int = interpreter::Interpreter::new();
@@ -247,8 +228,8 @@ pub fn invoke_func(
     ) {
         Err(Trap {
             origin: TrapOrigin::StackOverflow,
-        }) => Err(Error::StackOverflow),
-        Err(err) => Err(Error::CodeTrapped(err)),
+        }) => Err(Error(E::StackOverflow)),
+        Err(err) => Err(Error(E::CodeTrapped(err))),
         _ => {
             let end_drain = int.stack.len() - functype.result.len();
             int.stack.drain(0..end_drain);
@@ -441,12 +422,12 @@ pub fn instantiate_module(
 ) -> Result<Rc<ModuleInst>, Error> {
     // fail if module is invalid
     if !valid::is_valid(&module) {
-        return Err(Error::InvalidModule);
+        return Err(Error(E::InvalidModule));
     }
 
     // ensure that the number of provided exports matches the number of imports
     if extern_vals.len() != module.imports.len() {
-        return Err(Error::NotEnoughExternVal);
+        return Err(Error(E::NotEnoughExternVal));
     }
 
     // resolve imports, type-cheking them in the process
@@ -461,9 +442,9 @@ pub fn instantiate_module(
             .get(&TypeKey {
                 extern_val: extern_val,
             })
-            .ok_or(Error::UnknownImport)?;
+            .ok_or(Error(E::UnknownImport))?;
         if !ext_type.matches_(&import.type_(&module)) {
-            return Err(Error::ImportTypeMismatch);
+            return Err(Error(E::ImportTypeMismatch));
         }
         match extern_val {
             ExternVal::Func(addr) => imported_funcs.push(addr),
@@ -502,7 +483,7 @@ pub fn instantiate_module(
         };
 
         if offset + elem.init.len() > table_size {
-            return Err(Error::ElemOffsetTooLarge(elem.index as usize));
+            return Err(Error(E::ElemOffsetTooLarge(elem.index as usize)));
         }
     }
 
@@ -528,7 +509,7 @@ pub fn instantiate_module(
         };
 
         if offset + data.init.len() > memory_size {
-            return Err(Error::DataOffsetTooLarge(data.index as usize));
+            return Err(Error(E::DataOffsetTooLarge(data.index as usize)));
         }
     }
 
