@@ -1,5 +1,5 @@
 use crate::ast::*;
-use crate::ops::{BitsOp, FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
+use crate::ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
 use crate::runtime::*;
 use crate::types;
 use crate::values::Value;
@@ -988,27 +988,51 @@ impl Interpreter {
                 origin: TrapOrigin::LoadOutOfMemory,
             });
         }
-        let bits = &mem.data[offset..(offset + size_in_bytes)];
+        let bits: &[u8] = &mem.data[offset..(offset + size_in_bytes)];
 
         let res = match (size_in_bits, signed, memop.type_) {
-            (8, false, Tv::Int(Int::I32)) => Value::I32(u8::from_bits(bits) as u32),
-            (8, true, Tv::Int(Int::I32)) => Value::I32(i8::from_bits(bits) as u32),
-            (16, false, Tv::Int(Int::I32)) => Value::I32(u16::from_bits(bits) as u32),
-            (16, true, Tv::Int(Int::I32)) => Value::I32(i16::from_bits(bits) as u32),
-            (32, false, Tv::Int(Int::I32)) => Value::I32(u32::from_bits(bits) as u32),
-            (32, true, Tv::Int(Int::I32)) => Value::I32(i32::from_bits(bits) as u32),
+            (8, false, Tv::Int(Int::I32)) => Value::I32(bits[0] as u32),
+            (8, true, Tv::Int(Int::I32)) => Value::I32(bits[0] as i8 as u32),
+            (16, false, Tv::Int(Int::I32)) => {
+                Value::I32(u16::from_le_bytes([bits[0], bits[1]]) as u32)
+            }
+            (16, true, Tv::Int(Int::I32)) => {
+                Value::I32(i16::from_le_bytes([bits[0], bits[1]]) as u32)
+            }
+            (32, false, Tv::Int(Int::I32)) => {
+                Value::I32(u32::from_le_bytes([bits[0], bits[1], bits[2], bits[3]]) as u32)
+            }
+            (32, true, Tv::Int(Int::I32)) => {
+                Value::I32(i32::from_le_bytes([bits[0], bits[1], bits[2], bits[3]]) as u32)
+            }
 
-            (8, false, Tv::Int(Int::I64)) => Value::I64(u8::from_bits(bits) as u64),
-            (8, true, Tv::Int(Int::I64)) => Value::I64(i8::from_bits(bits) as u64),
-            (16, false, Tv::Int(Int::I64)) => Value::I64(u16::from_bits(bits) as u64),
-            (16, true, Tv::Int(Int::I64)) => Value::I64(i16::from_bits(bits) as u64),
-            (32, false, Tv::Int(Int::I64)) => Value::I64(u32::from_bits(bits) as u64),
-            (32, true, Tv::Int(Int::I64)) => Value::I64(i32::from_bits(bits) as u64),
-            (64, false, Tv::Int(Int::I64)) => Value::I64(u64::from_bits(bits) as u64),
-            (64, true, Tv::Int(Int::I64)) => Value::I64(i64::from_bits(bits) as u64),
+            (8, false, Tv::Int(Int::I64)) => Value::I64(bits[0] as u64),
+            (8, true, Tv::Int(Int::I64)) => Value::I64(bits[0] as i8 as u64),
+            (16, false, Tv::Int(Int::I64)) => {
+                Value::I64(u16::from_le_bytes([bits[0], bits[1]]) as u64)
+            }
+            (16, true, Tv::Int(Int::I64)) => {
+                Value::I64(i16::from_le_bytes([bits[0], bits[1]]) as u64)
+            }
+            (32, false, Tv::Int(Int::I64)) => {
+                Value::I64(u32::from_le_bytes([bits[0], bits[1], bits[2], bits[3]]) as u64)
+            }
+            (32, true, Tv::Int(Int::I64)) => {
+                Value::I64(i32::from_le_bytes([bits[0], bits[1], bits[2], bits[3]]) as u64)
+            }
+            (64, false, Tv::Int(Int::I64)) => Value::I64(u64::from_le_bytes([
+                bits[0], bits[1], bits[2], bits[3], bits[4], bits[5], bits[6], bits[7],
+            ]) as u64),
+            (64, true, Tv::Int(Int::I64)) => Value::I64(i64::from_le_bytes([
+                bits[0], bits[1], bits[2], bits[3], bits[4], bits[5], bits[6], bits[7],
+            ]) as u64),
 
-            (32, false, Tv::Float(Float::F32)) => Value::F32(f32::from_bits(u32::from_bits(bits))),
-            (64, false, Tv::Float(Float::F64)) => Value::F64(f64::from_bits(u64::from_bits(bits))),
+            (32, false, Tv::Float(Float::F32)) => Value::F32(f32::from_bits(u32::from_le_bytes([
+                bits[0], bits[1], bits[2], bits[3],
+            ]))),
+            (64, false, Tv::Float(Float::F64)) => Value::F64(f64::from_bits(u64::from_le_bytes([
+                bits[0], bits[1], bits[2], bits[3], bits[4], bits[5], bits[6], bits[7],
+            ]))),
             _ => unreachable!(),
         };
         self.stack.push(res);
@@ -1041,17 +1065,63 @@ impl Interpreter {
         }
         let bits = &mut mem.data[offset..(offset + size_in_bytes)];
         match (size_in_bits, memop.type_, c) {
-            (8, Tv::Int(Int::I32), Value::I32(c)) => (c as u8).to_bits(bits),
-            (16, Tv::Int(Int::I32), Value::I32(c)) => (c as u16).to_bits(bits),
-            (32, Tv::Int(Int::I32), Value::I32(c)) => (c as u32).to_bits(bits),
+            (8, Tv::Int(Int::I32), Value::I32(c)) => bits[0] = c as u8,
+            (16, Tv::Int(Int::I32), Value::I32(c)) => {
+                let b = (c as u16).to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+            }
+            (32, Tv::Int(Int::I32), Value::I32(c)) => {
+                let b = (c as u32).to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+                bits[2] = b[2];
+                bits[3] = b[3];
+            }
 
-            (8, Tv::Int(Int::I64), Value::I64(c)) => (c as u8).to_bits(bits),
-            (16, Tv::Int(Int::I64), Value::I64(c)) => (c as u16).to_bits(bits),
-            (32, Tv::Int(Int::I64), Value::I64(c)) => (c as u32).to_bits(bits),
-            (64, Tv::Int(Int::I64), Value::I64(c)) => (c as u64).to_bits(bits),
+            (8, Tv::Int(Int::I64), Value::I64(c)) => bits[0] = c as u8,
+            (16, Tv::Int(Int::I64), Value::I64(c)) => {
+                let b = (c as u16).to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+            }
+            (32, Tv::Int(Int::I64), Value::I64(c)) => {
+                let b = (c as u32).to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+                bits[2] = b[2];
+                bits[3] = b[3];
+            }
+            (64, Tv::Int(Int::I64), Value::I64(c)) => {
+                let b = (c as u64).to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+                bits[2] = b[2];
+                bits[3] = b[3];
+                bits[4] = b[4];
+                bits[5] = b[5];
+                bits[6] = b[6];
+                bits[7] = b[7];
+            }
 
-            (32, Tv::Float(Float::F32), Value::F32(c)) => (c as f32).to_bits().to_bits(bits),
-            (64, Tv::Float(Float::F64), Value::F64(c)) => (c as f64).to_bits().to_bits(bits),
+            (32, Tv::Float(Float::F32), Value::F32(c)) => {
+                let b = (c as f32).to_bits().to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+                bits[2] = b[2];
+                bits[3] = b[3];
+            }
+            (64, Tv::Float(Float::F64), Value::F64(c)) => {
+                let b = (c as f64).to_bits().to_le_bytes();
+                bits[0] = b[0];
+                bits[1] = b[1];
+                bits[2] = b[2];
+                bits[3] = b[3];
+                bits[4] = b[4];
+                bits[5] = b[5];
+                bits[6] = b[6];
+                bits[7] = b[7];
+            }
             _ => unreachable!(),
         };
         Ok(Continue)
