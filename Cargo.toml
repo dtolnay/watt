@@ -1,0 +1,18 @@
+[package]
+name = "watt"
+version = "0.0.0"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+watt-runtime = { path = "runtime" }
+
+[workspace]
+members = [
+    "demo/client",
+    "demo/wa",
+    "proc-macro",
+    "runtime",
+    "runtime/tests",
+]

@@ -1,0 +1,19 @@
+[package]
+name = "watt-demo"
+version = "0.0.0"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+edition = "2018"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+proc-macro2 = { version = "1.0", default-features = false }
+quote = { version = "1.0", default-features = false }
+syn = { version = "1.0", default-features = false, features = ["derive", "parsing", "printing", "clone-impls"] }
+
+[workspace]
+
+[patch.crates-io]
+proc-macro2 = { path = "../../proc-macro" }

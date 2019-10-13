@@ -1,0 +1,10 @@
+[package]
+name = "proc-macro2"
+version = "1.0.5"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+edition = "2018"
+publish = false
+
+[features]
+proc-macro = []
+default = ["proc-macro"]
