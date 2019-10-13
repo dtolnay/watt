@@ -1,5 +1,4 @@
-use watt_runtime::ast::Module;
-use watt_runtime::{module_exports, module_imports};
+use watt_runtime::{module_exports, module_imports, Module};
 
 pub fn print_module(module: &Module) {
     let mut imports: Vec<_> = module_imports(module).collect();

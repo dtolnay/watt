@@ -5,13 +5,28 @@ mod ops;
 mod runtime;
 mod valid;
 
+#[cfg(not(feature = "test"))]
+mod ast;
+#[cfg(feature = "test")]
 pub mod ast;
+
+#[cfg(not(feature = "test"))]
+mod types;
+#[cfg(feature = "test")]
 pub mod types;
+
+#[cfg(not(feature = "test"))]
+mod values;
+#[cfg(feature = "test")]
 pub mod values;
 
-pub use crate::runtime::{
-    ExternVal, FuncAddr, GlobalAddr, HostFunc, MemAddr, ModuleInst, TableAddr, PAGE_SIZE,
-};
+pub use crate::ast::Module;
+pub use crate::runtime::{ExternVal, HostFunc};
+pub use crate::types::Extern;
+pub use crate::values::Value;
+
+#[cfg(feature = "test")]
+pub use crate::runtime::{FuncAddr, GlobalAddr, MemAddr, ModuleInst, TableAddr, PAGE_SIZE};
 
 use crate::interpreter::{eval_const_expr, Trap, TrapOrigin};
 use crate::runtime::*;
@@ -69,6 +84,7 @@ pub fn decode_module<R: Read + Seek>(reader: R) -> Result<ast::Module, Error> {
 }
 
 /// Validate a module
+#[cfg(feature = "test")]
 pub fn validate_module(module: &ast::Module) -> Option<Error> {
     if valid::is_valid(module) {
         None
@@ -180,6 +196,7 @@ pub fn alloc_func(store: &mut Store, functype: &types::Func, hostfunc: HostFunc)
 }
 
 /// Get the type of a function
+#[cfg(feature = "test")]
 pub fn type_func(store: &Store, funcaddr: FuncAddr) -> types::Func {
     assert!(store.funcs.contains(funcaddr));
     match store.types_map.get(&TypeKey {
@@ -241,11 +258,13 @@ pub fn invoke_func(
 }
 
 /// Allocate a table
+#[cfg(feature = "test")]
 pub fn alloc_table(store: &mut Store, tabletype: &types::Table) -> TableAddr {
     store.tables.alloc(&mut store.types_map, tabletype)
 }
 
 /// Get the type of a table
+#[cfg(feature = "test")]
 pub fn type_table(store: &Store, tableaddr: TableAddr) -> types::Table {
     assert!(store.tables.contains(tableaddr));
     match store.types_map.get(&TypeKey {
@@ -257,6 +276,7 @@ pub fn type_table(store: &Store, tableaddr: TableAddr) -> types::Table {
 }
 
 /// Read the content of a table at a given address
+#[cfg(feature = "test")]
 pub fn read_table(
     store: &Store,
     tableaddr: TableAddr,
@@ -272,6 +292,7 @@ pub fn read_table(
 }
 
 /// Write AnyFunc to a specific table at a given address
+#[cfg(feature = "test")]
 pub fn write_table(
     store: &mut Store,
     tableaddr: TableAddr,
@@ -289,12 +310,14 @@ pub fn write_table(
 }
 
 /// Get the size of a table
+#[cfg(feature = "test")]
 pub fn size_table(store: &Store, tableaddr: TableAddr) -> usize {
     assert!(store.tables.contains(tableaddr));
     store.tables[tableaddr].elem.len()
 }
 
 /// Grow a table by new elements
+#[cfg(feature = "test")]
 pub fn grow_table(store: &mut Store, tableaddr: TableAddr, new: usize) -> Option<Error> {
     assert!(store.tables.contains(tableaddr));
     let table = &mut store.tables[tableaddr].elem;
@@ -304,11 +327,13 @@ pub fn grow_table(store: &mut Store, tableaddr: TableAddr, new: usize) -> Option
 }
 
 /// Allocate a memory
+#[cfg(feature = "test")]
 pub fn alloc_mem(store: &mut Store, memtype: &types::Memory) -> MemAddr {
     store.mems.alloc(&mut store.types_map, memtype)
 }
 
 /// Get the type of a memory
+#[cfg(feature = "test")]
 pub fn type_mem(store: &Store, memaddr: MemAddr) -> types::Memory {
     assert!(store.mems.contains(memaddr));
     match store.types_map.get(&TypeKey {
@@ -320,6 +345,7 @@ pub fn type_mem(store: &Store, memaddr: MemAddr) -> types::Memory {
 }
 
 /// Read a byte of a memory at a given address
+#[cfg(feature = "test")]
 pub fn read_mem(store: &Store, memaddr: MemAddr, addr: usize) -> Result<u8, Error> {
     assert!(store.mems.contains(memaddr));
     let mi = &store.mems[memaddr];
@@ -331,6 +357,7 @@ pub fn read_mem(store: &Store, memaddr: MemAddr, addr: usize) -> Result<u8, Erro
 }
 
 /// Write a byte to a memory at a given address
+#[cfg(feature = "test")]
 pub fn write_mem(store: &mut Store, memaddr: MemAddr, addr: usize, byte: u8) -> Option<Error> {
     assert!(store.mems.contains(memaddr));
     let mi = &mut store.mems[memaddr];
@@ -343,12 +370,14 @@ pub fn write_mem(store: &mut Store, memaddr: MemAddr, addr: usize, byte: u8) -> 
 }
 
 /// Get the size of a memory
+#[cfg(feature = "test")]
 pub fn size_mem(store: &Store, memaddr: MemAddr) -> usize {
     assert!(store.mems.contains(memaddr));
     store.mems.size(memaddr)
 }
 
 /// Grow a memory by new pages
+#[cfg(feature = "test")]
 pub fn grow_mem(store: &mut Store, memaddr: MemAddr, new: usize) -> Option<Error> {
     assert!(store.mems.contains(memaddr));
     match store.mems.grow(memaddr, new) {
@@ -358,6 +387,7 @@ pub fn grow_mem(store: &mut Store, memaddr: MemAddr, new: usize) -> Option<Error
 }
 
 /// Allocate a new global
+#[cfg(feature = "test")]
 pub fn alloc_global(
     store: &mut Store,
     globaltype: &types::Global,
@@ -367,6 +397,7 @@ pub fn alloc_global(
 }
 
 /// Get the type of a global
+#[cfg(feature = "test")]
 pub fn type_global(store: &Store, globaladdr: GlobalAddr) -> types::Global {
     assert!(store.globals.contains(globaladdr));
     match store.types_map.get(&TypeKey {
@@ -378,6 +409,7 @@ pub fn type_global(store: &Store, globaladdr: GlobalAddr) -> types::Global {
 }
 
 /// Read a global
+#[cfg(feature = "test")]
 pub fn read_global(store: &Store, globaladdr: GlobalAddr) -> values::Value {
     assert!(store.globals.contains(globaladdr));
     let gi = &store.globals[globaladdr];
@@ -385,6 +417,7 @@ pub fn read_global(store: &Store, globaladdr: GlobalAddr) -> values::Value {
 }
 
 /// Write a global
+#[cfg(feature = "test")]
 pub fn write_global(
     store: &mut Store,
     globaladdr: GlobalAddr,
@@ -429,7 +462,7 @@ pub fn instantiate_module(
                 extern_val: extern_val,
             })
             .ok_or(Error::UnknownImport)?;
-        if !ext_type.matches(&import.type_(&module)) {
+        if !ext_type.matches_(&import.type_(&module)) {
             return Err(Error::ImportTypeMismatch);
         }
         match extern_val {

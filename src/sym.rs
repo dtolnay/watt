@@ -4,7 +4,7 @@ use std::char;
 use std::cmp::Ordering;
 use std::iter::once;
 use std::str::FromStr;
-use watt_runtime::values::Value;
+use watt_runtime::Value;
 
 const SENTINEL: u32 = u32::max_value();
 const TOKEN_GROUP: u32 = 0;

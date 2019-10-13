@@ -114,6 +114,7 @@ macro_rules! impl_inst_store {
                 self.0.len()
             }
 
+            #[allow(dead_code)]
             pub fn contains(&self, addr: $AddrType) -> bool {
                 self.0.len() >= addr.0
             }

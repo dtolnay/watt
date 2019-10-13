@@ -89,7 +89,12 @@ impl Extern {
     /// When instantiating a module, external values must be provided whose types
     /// are matched against the respective external types classifying each import.
     /// In some cases, this allows for a simple form of subtyping.
+    #[cfg(feature = "test")]
     pub fn matches(&self, other: &Extern) -> bool {
+        self.matches_(other)
+    }
+
+    pub(crate) fn matches_(&self, other: &Extern) -> bool {
         use self::Extern::*;
 
         match (self, other) {

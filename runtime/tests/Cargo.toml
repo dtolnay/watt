@@ -15,4 +15,4 @@ path = "run_suite.rs"
 
 [dev-dependencies]
 hexf-parse = "0.1.0"
-watt-runtime = { path = ".." }
+watt-runtime = { path = "..", features = ["test"] }

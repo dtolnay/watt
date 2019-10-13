@@ -2,9 +2,8 @@ use crate::data::Data;
 use crate::{debug, import};
 use proc_macro::TokenStream;
 use std::io::Cursor;
-use watt_runtime::values::Value;
 use watt_runtime::{
-    decode_module, get_export, init_store, instantiate_module, invoke_func, ExternVal,
+    decode_module, get_export, init_store, instantiate_module, invoke_func, ExternVal, Value,
 };
 
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, wasm: &[u8]) -> TokenStream {

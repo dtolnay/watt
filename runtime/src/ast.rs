@@ -153,16 +153,16 @@ pub type Expr = Vec<Instr>;
 
 #[derive(Debug)]
 pub struct Module {
-    pub types: Vec<types::Func>,
-    pub funcs: Vec<Func>,
-    pub tables: Vec<Table>,
-    pub memories: Vec<Memory>,
-    pub globals: Vec<Global>,
-    pub elems: Vec<Segment<Index>>, // initial values for tables
-    pub data: Vec<Segment<u8>>,     // initial values for memories
-    pub start: Option<Index>,       // optionnal index to a start function
-    pub imports: Vec<Import>,
-    pub exports: Vec<Export>,
+    pub(crate) types: Vec<types::Func>,
+    pub(crate) funcs: Vec<Func>,
+    pub(crate) tables: Vec<Table>,
+    pub(crate) memories: Vec<Memory>,
+    pub(crate) globals: Vec<Global>,
+    pub(crate) elems: Vec<Segment<Index>>, // initial values for tables
+    pub(crate) data: Vec<Segment<u8>>,     // initial values for memories
+    pub(crate) start: Option<Index>,       // optionnal index to a start function
+    pub(crate) imports: Vec<Import>,
+    pub(crate) exports: Vec<Export>,
 }
 
 pub type Index = u32;
@@ -239,9 +239,7 @@ impl Import {
 
 // Helper function for tests
 impl Module {
-    // Right now, we cannot only publish this function for test
-    // See https://github.com/rust-lang/rust/issues/45599
-    // #[cfg(test)]
+    #[cfg(feature = "test")]
     pub fn empty() -> Module {
         Module {
             types: Vec::new(),
