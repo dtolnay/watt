@@ -1,5 +1,5 @@
-use core::ptr::copy_nonoverlapping;
 use std::ops::*;
+use std::ptr::copy_nonoverlapping;
 
 pub trait IntOp<S = Self> {
     type FloatType;
@@ -264,7 +264,7 @@ macro_rules! impl_bits_ops {
         impl BitsOp for $ty {
             #[inline]
             fn from_bits(src: &[u8]) -> $ty {
-                assert!($size == core::mem::size_of::<$ty>());
+                assert!($size == std::mem::size_of::<$ty>());
                 assert!($size <= src.len());
                 let mut data: $ty = 0;
                 unsafe {
@@ -275,7 +275,7 @@ macro_rules! impl_bits_ops {
 
             #[inline]
             fn to_bits(self, dst: &mut [u8]) {
-                assert!($size == core::mem::size_of::<$ty>());
+                assert!($size == std::mem::size_of::<$ty>());
                 assert_eq!($size, dst.len());
 
                 unsafe {
@@ -377,7 +377,7 @@ macro_rules! impl_convert_float_u {
 }
 
 macro_rules! impl_float_op {
-    ($T:ty, $I:ty, $SB:expr, $copysign:ident, $NAN:expr) => {
+    ($T:ty, $I:ty, $SB:expr, $NAN:expr) => {
         impl FloatOp for $T {
             type IntType = $I;
 
@@ -484,9 +484,9 @@ macro_rules! impl_float_op {
             }
 
             #[inline]
+            #[deny(unconditional_recursion)]
             fn copysign(self, rhs: $T) -> $T {
-                use std::intrinsics;
-                unsafe { intrinsics::$copysign(self, rhs) }
+                self.copysign(rhs)
             }
 
             #[inline]
@@ -537,8 +537,8 @@ macro_rules! impl_float_op {
     };
 }
 
-impl_float_op!(f32, u32, 32, copysignf32, std::f32::NAN);
-impl_float_op!(f64, u64, 64, copysignf64, std::f64::NAN);
+impl_float_op!(f32, u32, 32, std::f32::NAN);
+impl_float_op!(f64, u64, 64, std::f64::NAN);
 
 // Promote/Demote are only available in one way
 pub trait FloatPromoteOp {

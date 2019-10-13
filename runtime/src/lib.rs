@@ -1,9 +1,3 @@
-#![feature(core_intrinsics)]
-/// Provides the public Embedding interface
-/// Note: the API does not take a Store and returns the new Store as stated in
-/// the spec but takes a (possibly mutable) reference when needed
-extern crate core;
-
 #[macro_use]
 mod interpreter;
 mod binary;
