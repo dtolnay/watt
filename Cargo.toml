@@ -3,6 +3,7 @@ name = "watt"
 version = "0.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2018"
+exclude = ["runtime/tests"]
 publish = false
 
 [workspace]
