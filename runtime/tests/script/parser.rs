@@ -341,9 +341,9 @@ fn unescape_in<'a>(vec: &mut Vec<u8>, s: &'a str) {
 
 fn parse_hex_digit(c: u8) -> u8 {
     match c {
-        b'0'...b'9' => c - b'0',
-        b'a'...b'f' => c - b'a' + 10,
-        b'A'...b'F' => c - b'A' + 10,
+        b'0'..=b'9' => c - b'0',
+        b'a'..=b'f' => c - b'a' + 10,
+        b'A'..=b'F' => c - b'A' + 10,
         _ => unreachable!(),
     }
 }

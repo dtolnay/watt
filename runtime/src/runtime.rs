@@ -35,7 +35,7 @@ pub struct GlobalInst {
 }
 
 pub type HostFunctionError = String;
-pub type HostFunc = Box<Fn(&mut Vec<values::Value>) -> Option<HostFunctionError>>;
+pub type HostFunc = Box<dyn Fn(&mut Vec<values::Value>) -> Option<HostFunctionError>>;
 
 pub struct HostFuncInst {
     pub type_: types::Func,

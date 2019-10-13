@@ -1,5 +1,3 @@
-#![feature(try_from)]
-
 extern crate hexf_parse;
 extern crate watt_runtime;
 
