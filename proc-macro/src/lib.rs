@@ -1,3 +1,5 @@
+extern crate proc_macro;
+
 extern "C" {
     fn token_stream_new() -> handle::TokenStream;
     fn token_stream_is_empty(stream: handle::TokenStream) -> bool;
@@ -227,6 +229,12 @@ fn panic_hook(panic: &PanicInfo) {
 
 #[repr(transparent)]
 pub struct TokenStream(handle::TokenStream);
+
+impl From<proc_macro::TokenStream> for TokenStream {
+    fn from(_: proc_macro::TokenStream) -> Self {
+        unimplemented!("From<proc_macro::TokenStream> does not exist in wasm");
+    }
+}
 
 impl Clone for TokenStream {
     fn clone(&self) -> Self {
