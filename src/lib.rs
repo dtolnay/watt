@@ -125,7 +125,7 @@
 //! static WASM: &[u8] = include_bytes!("my_macro.wasm");
 //!
 //! #[proc_macro]
-//! pub fn (input: TokenStream) -> TokenStream {
+//! pub fn my_macro(input: TokenStream) -> TokenStream {
 //!     watt::proc_macro("my_macro", input, WASM)
 //! }
 //! # };
