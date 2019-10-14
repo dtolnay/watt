@@ -3,14 +3,14 @@ name = "watt"
 version = "0.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2018"
-exclude = ["runtime/tests"]
 publish = false
+include = [
+    "LICENSE_APACHE",
+    "LICENSE_MIT",
+    "runtime/LICENSE_ISC",
+    "runtime/src",
+    "src",
+]
 
 [workspace]
-members = [
-    "demo/client",
-    "demo/wa",
-    "proc-macro",
-    "runtime",
-    "runtime/tests",
-]
+members = ["demo/client", "demo/wa"]
