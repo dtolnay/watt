@@ -178,6 +178,36 @@ crate, to the src directory of your shim crate, and it's ready to publish!
 
 <br>
 
+## This can't be real
+
+To assist in convincing you that this is real, [here is serde\_derive compiled
+to Wasm][wa-serde-derive]. It was compiled from the commit
+[serde-rs/serde@d2eb021d][commit]. Feel free to try it out as:
+
+[wa-serde-derive]: https://crates.io/crates/wa-serde-derive
+[commit]: https://github.com/serde-rs/serde/commit/d2eb021ddf6751a0cd6b67748459991d2e2fc251
+
+```rust
+// [dependencies]
+// serde = "1.0"
+// serde_json = "1.0"
+// wa-serde-derive = "0.1"
+
+use wa_serde_derive::Serialize;
+
+#[derive(Serialize)]
+struct Watt {
+    msg: &'static str,
+}
+
+fn main() {
+    let w = Watt { msg: "hello from wasm!" };
+    println!("{}", serde_json::to_string(&w).unwrap());
+}
+```
+
+<br>
+
 ## Acknowledgements
 
 The current underlying Wasm runtime is a fork of the [Rust-WASM] project by
