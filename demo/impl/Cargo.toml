@@ -9,9 +9,9 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-proc-macro2 = { version = "1.0", default-features = false }
-quote = { version = "1.0", default-features = false }
-syn = { version = "1.0", default-features = false, features = ["derive", "parsing", "printing", "clone-impls"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "1.0"
 
 [workspace]
 
