@@ -13,7 +13,7 @@ WebAssembly.
 
 ```toml
 [dependencies]
-watt = "0.0"
+watt = "0.1"
 ```
 
 *Compiler support: requires rustc 1.35+*
@@ -118,7 +118,7 @@ bytes into the Watt runtime. In a new Cargo.toml, put:
 proc-macro = true
 
 [dependencies]
-watt = "0.0"
+watt = "0.1"
 ```
 
 And in its src/lib.rs put:

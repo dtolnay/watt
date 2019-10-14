@@ -111,7 +111,7 @@
 //! proc-macro = true
 //!
 //! [dependencies]
-//! watt = "0.0"
+//! watt = "0.1"
 //! ```
 //!
 //! And in its src/lib.rs put:

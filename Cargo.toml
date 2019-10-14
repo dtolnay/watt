@@ -1,6 +1,6 @@
 [package]
 name = "watt"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "Runtime for executing Rust procedural macros compiled as WebAssembly."
@@ -8,7 +8,6 @@ repository = "https://github.com/dtolnay/watt"
 documentation = "https://docs.rs/watt"
 categories = ["development-tools::procedural-macro-helpers"]
 edition = "2018"
-publish = false
 include = [
     "LICENSE_APACHE",
     "LICENSE_MIT",
