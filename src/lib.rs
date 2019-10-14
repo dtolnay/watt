@@ -30,7 +30,7 @@
 //! - **Determinism.**&emsp;From a build system point of view, a macro backed by
 //!   Wasm has the advantage that it can be treated as a purely deterministic
 //!   function from input to output. There is no possibility of implicit
-//!   dependencies, such as via the filesystem, which aren't visible to or take
+//!   dependencies, such as via the filesystem, which aren't visible to or taken
 //!   into account by the build system.
 //!
 //! <br>
