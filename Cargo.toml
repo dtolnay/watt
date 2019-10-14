@@ -7,6 +7,7 @@ description = "Runtime for executing Rust procedural macros compiled as WebAssem
 repository = "https://github.com/dtolnay/watt"
 documentation = "https://docs.rs/watt"
 categories = ["development-tools::procedural-macro-helpers"]
+readme = "README.md"
 edition = "2018"
 include = [
     "LICENSE_APACHE",
