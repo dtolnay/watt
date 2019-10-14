@@ -13,4 +13,4 @@ include = [
 ]
 
 [workspace]
-members = ["demo/client", "demo/wa"]
+members = ["demo/client", "demo/wa", "runtime/tests"]
