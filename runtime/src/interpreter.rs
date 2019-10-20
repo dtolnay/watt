@@ -119,6 +119,11 @@ impl<'a> Interpreter<'a> {
         self.stack.pop()
     }
 
+    /// Get mutable access to the underlying memory associated with the current stack frame.
+    pub fn get_memory_mut(&mut self) -> &mut [u8] {
+        &mut self.mems[self.frame.module().mem_addrs[0]]
+    }
+
     /// Intrepret a single instruction.
     /// This is the main dispatching function of the interpreter.
     fn instr(&mut self, instr: &Instr) -> IntResult {
