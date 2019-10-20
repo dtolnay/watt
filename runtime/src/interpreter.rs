@@ -3,11 +3,14 @@ use crate::ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
 use crate::runtime::*;
 use crate::types;
 use crate::values::Value;
+use std::mem;
 use std::rc::Rc;
 
 /// A struct storing the state of the current interpreted
 pub struct Interpreter<'a> {
     pub stack: Vec<Value>,
+
+    frame: StackFrame,
 
     funcs: &'a FuncInstStore,
     tables: &'a TableInstStore,
@@ -68,6 +71,13 @@ impl StackFrame {
         }
     }
 
+    /// Get the current module.
+    ///
+    /// Panics if run while a module is not active.
+    fn module(&self) -> &ModuleInst {
+        self.module.as_ref().unwrap()
+    }
+
     pub fn push(&self, module: Option<Rc<ModuleInst>>, stack_idx: usize) -> Option<StackFrame> {
         if self.nested_levels == 0 {
             return None;
@@ -91,6 +101,7 @@ impl<'a> Interpreter<'a> {
     ) -> Interpreter<'a> {
         Interpreter {
             stack: Vec::new(),
+            frame: StackFrame::new(None),
             funcs,
             tables,
             globals,
@@ -100,35 +111,34 @@ impl<'a> Interpreter<'a> {
 
     /// Intrepret a single instruction.
     /// This is the main dispatching function of the interpreter.
-    fn instr(&mut self, sframe: &StackFrame, instr: &Instr) -> IntResult {
+    fn instr(&mut self, instr: &Instr) -> IntResult {
         use crate::ast::Instr::*;
 
-        let module = &sframe.module.as_ref().unwrap();
         match *instr {
             Unreachable => self.unreachable(),
             Nop => self.nop(),
-            Block(ref result_type, ref instrs) => self.block(sframe, result_type, instrs),
-            Loop(_, ref instrs) => self.loop_(sframe, instrs),
+            Block(ref result_type, ref instrs) => self.block(result_type, instrs),
+            Loop(_, ref instrs) => self.loop_(instrs),
             If(ref result_type, ref if_instrs, ref else_instrs) => {
-                self.if_(sframe, result_type, if_instrs, else_instrs)
+                self.if_(result_type, if_instrs, else_instrs)
             }
             Br(nesting_levels) => self.branch(nesting_levels),
             BrIf(nesting_levels) => self.branch_cond(nesting_levels),
             BrTable(ref all_levels, default_level) => self.branch_table(all_levels, default_level),
             Return => self.return_(),
-            Call(idx) => self.call(module.func_addrs[idx as usize], sframe),
-            CallIndirect(idx) => self.call_indirect(idx, sframe, module),
+            Call(idx) => self.call(self.frame.module().func_addrs[idx as usize]),
+            CallIndirect(idx) => self.call_indirect(idx),
             Drop_ => self.drop(),
             Select => self.select(),
-            GetLocal(idx) => self.get_local(idx, sframe),
-            SetLocal(idx) => self.set_local(idx, sframe),
-            TeeLocal(idx) => self.tee_local(idx, sframe),
-            GetGlobal(idx) => self.get_global(idx, module),
-            SetGlobal(idx) => self.set_global(idx, module),
-            Load(ref memop) => self.load(memop, module),
-            Store(ref memop) => self.store(memop, module),
-            CurrentMemory => self.current_memory(module),
-            GrowMemory => self.grow_memory(module),
+            GetLocal(idx) => self.get_local(idx),
+            SetLocal(idx) => self.set_local(idx),
+            TeeLocal(idx) => self.tee_local(idx),
+            GetGlobal(idx) => self.get_global(idx),
+            SetGlobal(idx) => self.set_global(idx),
+            Load(ref memop) => self.load(memop),
+            Store(ref memop) => self.store(memop),
+            CurrentMemory => self.current_memory(),
+            GrowMemory => self.grow_memory(),
             Const(c) => self.const_(c),
             IUnary(ref t, ref op) => self.iunary(t, op),
             FUnary(ref t, ref op) => self.funary(t, op),
@@ -154,16 +164,11 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Interpret a block
-    fn block(
-        &mut self,
-        sframe: &StackFrame,
-        result_type: &[types::Value],
-        instrs: &[Instr],
-    ) -> IntResult {
+    fn block(&mut self, result_type: &[types::Value], instrs: &[Instr]) -> IntResult {
         let local_stack_begin = self.stack.len();
 
         for instr in instrs {
-            match self.instr(sframe, instr)? {
+            match self.instr(instr)? {
                 Branch { nesting_levels } => {
                     // If the instruction caused a branch, we need to exit the block early on.
                     // The way to do so depends if the current block is the target of the branch.
@@ -190,12 +195,12 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Interpret a loop
-    fn loop_(&mut self, sframe: &StackFrame, instrs: &[Instr]) -> IntResult {
+    fn loop_(&mut self, instrs: &[Instr]) -> IntResult {
         let local_stack_begin = self.stack.len();
 
         'outer: loop {
             for instr in instrs {
-                let res = self.instr(sframe, instr)?;
+                let res = self.instr(instr)?;
 
                 match res {
                     Branch { nesting_levels } => {
@@ -252,7 +257,6 @@ impl<'a> Interpreter<'a> {
     /// If/Else block (delegate to block)
     fn if_(
         &mut self,
-        sframe: &StackFrame,
         result_type: &[types::Value],
         if_instrs: &[Instr],
         else_instrs: &[Instr],
@@ -263,9 +267,9 @@ impl<'a> Interpreter<'a> {
         };
 
         Ok(if c != 0 {
-            self.block(sframe, result_type, if_instrs)?
+            self.block(result_type, if_instrs)?
         } else {
-            self.block(sframe, result_type, else_instrs)?
+            self.block(result_type, else_instrs)?
         })
     }
 
@@ -684,40 +688,40 @@ impl<'a> Interpreter<'a> {
     }
 
     /// GetGlobal
-    fn get_global(&mut self, idx: Index, module: &ModuleInst) -> IntResult {
+    fn get_global(&mut self, idx: Index) -> IntResult {
         self.stack
-            .push(self.globals[module.global_addrs[idx as usize]].value);
+            .push(self.globals[self.frame.module().global_addrs[idx as usize]].value);
         Ok(Continue)
     }
 
     /// SetGlobal
-    fn set_global(&mut self, idx: Index, module: &ModuleInst) -> IntResult {
+    fn set_global(&mut self, idx: Index) -> IntResult {
         // "Validation ensures that the global is, in fact, marked as mutable."
         let val = self.stack.pop().unwrap();
-        self.globals[module.global_addrs[idx as usize]].value = val;
+        self.globals[self.frame.module().global_addrs[idx as usize]].value = val;
         Ok(Continue)
     }
 
     /// Push local idx on the Stack
-    fn get_local(&mut self, idx: Index, sframe: &StackFrame) -> IntResult {
-        let val = self.stack[sframe.stack_idx + (idx as usize)];
+    fn get_local(&mut self, idx: Index) -> IntResult {
+        let val = self.stack[self.frame.stack_idx + (idx as usize)];
         self.stack.push(val);
         Ok(Continue)
     }
 
     /// Update local idx based on the value poped from the stack
-    fn set_local(&mut self, idx: Index, sframe: &StackFrame) -> IntResult {
-        self.stack[sframe.stack_idx + (idx as usize)] = self.stack.pop().unwrap();
+    fn set_local(&mut self, idx: Index) -> IntResult {
+        self.stack[self.frame.stack_idx + (idx as usize)] = self.stack.pop().unwrap();
         Ok(Continue)
     }
 
     /// Update the local idx without poping the top of the stack
-    fn tee_local(&mut self, idx: Index, sframe: &StackFrame) -> IntResult {
-        self.stack[sframe.stack_idx + (idx as usize)] = *self.stack.last().unwrap();
+    fn tee_local(&mut self, idx: Index) -> IntResult {
+        self.stack[self.frame.stack_idx + (idx as usize)] = *self.stack.last().unwrap();
         Ok(Continue)
     }
 
-    fn call_module(&mut self, f_inst: &ModuleFuncInst, sframe: &StackFrame) -> IntResult {
+    fn call_module(&mut self, f_inst: &ModuleFuncInst) -> IntResult {
         // Push locals
         for l in &f_inst.code.locals {
             match *l {
@@ -730,14 +734,17 @@ impl<'a> Interpreter<'a> {
 
         // Push the frame
         let frame_begin = self.stack.len() - f_inst.type_.args.len() - f_inst.code.locals.len();
-        let new_frame = sframe
+        let new_frame = self
+            .frame
             .push(Some(f_inst.module.clone()), frame_begin)
             .ok_or(Trap {
                 origin: TrapOrigin::StackOverflow,
             })?;
 
         // Execute the function inside a block
-        self.block(&new_frame, &f_inst.type_.result, &f_inst.code.body)?;
+        let old_frame = mem::replace(&mut self.frame, new_frame);
+        self.block(&f_inst.type_.result, &f_inst.code.body)?;
+        self.frame = old_frame;
 
         // Remove locals/args
         let drain_start = frame_begin;
@@ -746,7 +753,7 @@ impl<'a> Interpreter<'a> {
         Ok(Continue)
     }
 
-    fn call_host(&mut self, f_inst: &HostFuncInst, _sframe: &StackFrame) -> IntResult {
+    fn call_host(&mut self, f_inst: &HostFuncInst) -> IntResult {
         /*
         let stack_before_call = self.stack.len();
         */
@@ -786,23 +793,23 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Call a function directly
-    pub fn call(&mut self, f_addr: FuncAddr, sframe: &StackFrame) -> IntResult {
+    pub fn call(&mut self, f_addr: FuncAddr) -> IntResult {
         // Idea: the new stack_idx is the base frame pointer, which point to the
         // first argument of the called function. When calling call, all
         // arguments should already be on the stack (thanks to validation).
         match self.funcs[f_addr] {
-            FuncInst::Module(ref f_inst) => self.call_module(f_inst, sframe)?,
-            FuncInst::Host(ref f_inst) => self.call_host(f_inst, sframe)?,
+            FuncInst::Module(ref f_inst) => self.call_module(f_inst)?,
+            FuncInst::Host(ref f_inst) => self.call_host(f_inst)?,
         };
 
         Ok(Continue)
     }
 
     /// Call a function indirectly
-    fn call_indirect(&mut self, idx: Index, sframe: &StackFrame, module: &ModuleInst) -> IntResult {
+    fn call_indirect(&mut self, idx: Index) -> IntResult {
         // For the MVP, only the table at index 0 exists and is implicitly refered
-        let tab = &self.tables[module.table_addrs[0]];
-        let type_ = &module.types[idx as usize];
+        let tab = &self.tables[self.frame.module().table_addrs[0]];
+        let type_ = &self.frame.module().types[idx as usize];
         let indirect_idx = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize,
             _ => unreachable!(),
@@ -833,7 +840,7 @@ impl<'a> Interpreter<'a> {
                 origin: TrapOrigin::CallIndirectTypesDiffer,
             });
         }
-        self.call(func_addr, sframe)
+        self.call(func_addr)
     }
 
     /// Return to the caller of the current function
@@ -842,19 +849,20 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Get the size of the current memory
-    fn current_memory(&mut self, module: &ModuleInst) -> IntResult {
-        self.stack
-            .push(Value::I32(self.mems.size(module.mem_addrs[0]) as u32));
+    fn current_memory(&mut self) -> IntResult {
+        self.stack.push(Value::I32(
+            self.mems.size(self.frame.module().mem_addrs[0]) as u32
+        ));
         Ok(Continue)
     }
 
     /// Grow the memory
-    fn grow_memory(&mut self, module: &ModuleInst) -> IntResult {
+    fn grow_memory(&mut self) -> IntResult {
         let new_pages = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize,
             _ => unreachable!(),
         };
-        if let Some(old_size) = self.mems.grow(module.mem_addrs[0], new_pages) {
+        if let Some(old_size) = self.mems.grow(self.frame.module().mem_addrs[0], new_pages) {
             self.stack.push(Value::I32(old_size as u32));
         } else {
             self.stack.push(Value::from_i32(-1));
@@ -863,11 +871,11 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Load memory (dispatcher)
-    fn load(&mut self, memop: &LoadOp, module: &ModuleInst) -> IntResult {
+    fn load(&mut self, memop: &LoadOp) -> IntResult {
         use crate::types::Value as Tv;
         use crate::types::{Float, Int};
 
-        let mem = &self.mems[module.mem_addrs[0]];
+        let mem = &self.mems[self.frame.module().mem_addrs[0]];
         let offset = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize + memop.offset as usize,
             _ => unreachable!(),
@@ -932,11 +940,11 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Store memory (dispatcher)
-    fn store(&mut self, memop: &StoreOp, module: &ModuleInst) -> IntResult {
+    fn store(&mut self, memop: &StoreOp) -> IntResult {
         use crate::types::Value as Tv;
         use crate::types::{Float, Int};
 
-        let mem = &mut self.mems[module.mem_addrs[0]];
+        let mem = &mut self.mems[self.frame.module().mem_addrs[0]];
         let c = self.stack.pop().unwrap();
         let offset = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize + memop.offset as usize,

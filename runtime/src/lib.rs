@@ -210,8 +210,7 @@ pub fn invoke_func(
     );
     int.stack.extend(args);
 
-    let sframe = interpreter::StackFrame::new(None);
-    match int.call(funcaddr, &sframe) {
+    match int.call(funcaddr) {
         Err(Trap {
             origin: TrapOrigin::StackOverflow,
         }) => Err(Error(E::StackOverflow)),
