@@ -202,18 +202,16 @@ pub fn invoke_func(
         return Err(Error(E::ArgumentTypeMismatch));
     }
 
-    let mut int = interpreter::Interpreter::new();
-    int.stack.extend(args);
-
-    let sframe = interpreter::StackFrame::new(None);
-    match int.call(
-        funcaddr,
-        &sframe,
+    let mut int = interpreter::Interpreter::new(
         &store.funcs,
         &store.tables,
         &mut store.globals,
         &mut store.mems,
-    ) {
+    );
+    int.stack.extend(args);
+
+    let sframe = interpreter::StackFrame::new(None);
+    match int.call(funcaddr, &sframe) {
         Err(Trap {
             origin: TrapOrigin::StackOverflow,
         }) => Err(Error(E::StackOverflow)),

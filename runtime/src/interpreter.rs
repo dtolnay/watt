@@ -6,8 +6,13 @@ use crate::values::Value;
 use std::rc::Rc;
 
 /// A struct storing the state of the current interpreted
-pub struct Interpreter {
+pub struct Interpreter<'a> {
     pub stack: Vec<Value>,
+
+    funcs: &'a FuncInstStore,
+    tables: &'a TableInstStore,
+    mems: &'a mut MemInstStore,
+    globals: &'a mut GlobalInstStore,
 }
 
 #[derive(Debug, PartialEq)]
@@ -76,79 +81,60 @@ impl StackFrame {
     }
 }
 
-impl Interpreter {
+impl<'a> Interpreter<'a> {
     /// Instantiate a new interpreter
-    pub fn new() -> Interpreter {
-        Interpreter { stack: Vec::new() }
+    pub fn new(
+        funcs: &'a FuncInstStore,
+        tables: &'a TableInstStore,
+        globals: &'a mut GlobalInstStore,
+        mems: &'a mut MemInstStore,
+    ) -> Interpreter<'a> {
+        Interpreter {
+            stack: Vec::new(),
+            funcs,
+            tables,
+            globals,
+            mems,
+        }
     }
 
     /// Intrepret a single instruction.
     /// This is the main dispatching function of the interpreter.
-    pub fn instr(
-        &mut self,
-        sframe: &StackFrame,
-        instr: &Instr,
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
-    ) -> IntResult {
+    pub fn instr(&mut self, sframe: &StackFrame, instr: &Instr) -> IntResult {
         use crate::ast::Instr::*;
 
         // Note: passing VM components mutability is case by case
         match *instr {
             Unreachable => self.unreachable(),
             Nop => self.nop(),
-            Block(ref result_type, ref instrs) => {
-                self.block(sframe, result_type, instrs, funcs, tables, globals, mems)
+            Block(ref result_type, ref instrs) => self.block(sframe, result_type, instrs),
+            Loop(_, ref instrs) => self.loop_(sframe, instrs),
+            If(ref result_type, ref if_instrs, ref else_instrs) => {
+                self.if_(sframe, result_type, if_instrs, else_instrs)
             }
-            Loop(_, ref instrs) => self.loop_(sframe, instrs, funcs, tables, globals, mems),
-            If(ref result_type, ref if_instrs, ref else_instrs) => self.if_(
-                sframe,
-                result_type,
-                if_instrs,
-                else_instrs,
-                funcs,
-                tables,
-                globals,
-                mems,
-            ),
             Br(nesting_levels) => self.branch(nesting_levels),
             BrIf(nesting_levels) => self.branch_cond(nesting_levels),
             BrTable(ref all_levels, default_level) => self.branch_table(all_levels, default_level),
             Return => self.return_(),
             Call(idx) => {
                 let f_addr = sframe.module.as_ref().unwrap().func_addrs[idx as usize];
-                self.call(f_addr, sframe, funcs, tables, globals, mems)
+                self.call(f_addr, sframe)
             }
             CallIndirect(idx) => {
                 let mod_inst = sframe.module.as_ref().unwrap().clone();
-                self.call_indirect(
-                    idx,
-                    sframe,
-                    funcs,
-                    tables,
-                    globals,
-                    mems,
-                    &mod_inst.table_addrs,
-                    &mod_inst.types,
-                )
+                self.call_indirect(idx, sframe, &mod_inst.table_addrs, &mod_inst.types)
             }
             Drop_ => self.drop(),
             Select => self.select(),
             GetLocal(idx) => self.get_local(idx, sframe.stack_idx),
             SetLocal(idx) => self.set_local(idx, sframe.stack_idx),
             TeeLocal(idx) => self.tee_local(idx, sframe.stack_idx),
-            GetGlobal(idx) => {
-                self.get_global(idx, globals, &sframe.module.as_ref().unwrap().global_addrs)
-            }
-            SetGlobal(idx) => {
-                self.set_global(idx, globals, &sframe.module.as_ref().unwrap().global_addrs)
-            }
-            Load(ref memop) => self.load(memop, mems, &sframe.module.as_ref().unwrap().mem_addrs),
-            Store(ref memop) => self.store(memop, mems, &sframe.module.as_ref().unwrap().mem_addrs),
-            CurrentMemory => self.current_memory(mems, &sframe.module.as_ref().unwrap().mem_addrs),
-            GrowMemory => self.grow_memory(mems, &sframe.module.as_ref().unwrap().mem_addrs),
+            GetGlobal(idx) => self.get_global(idx, &sframe.module.as_ref().unwrap().global_addrs),
+            SetGlobal(idx) => self.set_global(idx, &sframe.module.as_ref().unwrap().global_addrs),
+            Load(ref memop) => self.load(memop, &sframe.module.as_ref().unwrap().mem_addrs),
+            Store(ref memop) => self.store(memop, &sframe.module.as_ref().unwrap().mem_addrs),
+            CurrentMemory => self.current_memory(&sframe.module.as_ref().unwrap().mem_addrs),
+            GrowMemory => self.grow_memory(&sframe.module.as_ref().unwrap().mem_addrs),
             Const(c) => self.const_(c),
             IUnary(ref t, ref op) => self.iunary(t, op),
             FUnary(ref t, ref op) => self.funary(t, op),
@@ -179,15 +165,11 @@ impl Interpreter {
         sframe: &StackFrame,
         result_type: &[types::Value],
         instrs: &[Instr],
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
     ) -> IntResult {
         let local_stack_begin = self.stack.len();
 
         for instr in instrs {
-            match self.instr(sframe, instr, funcs, tables, globals, mems)? {
+            match self.instr(sframe, instr)? {
                 Branch { nesting_levels } => {
                     // If the instruction caused a branch, we need to exit the block early on.
                     // The way to do so depends if the current block is the target of the branch.
@@ -214,20 +196,12 @@ impl Interpreter {
     }
 
     /// Interpret a loop
-    fn loop_(
-        &mut self,
-        sframe: &StackFrame,
-        instrs: &[Instr],
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
-    ) -> IntResult {
+    fn loop_(&mut self, sframe: &StackFrame, instrs: &[Instr]) -> IntResult {
         let local_stack_begin = self.stack.len();
 
         'outer: loop {
             for instr in instrs {
-                let res = self.instr(sframe, instr, funcs, tables, globals, mems)?;
+                let res = self.instr(sframe, instr)?;
 
                 match res {
                     Branch { nesting_levels } => {
@@ -288,10 +262,6 @@ impl Interpreter {
         result_type: &[types::Value],
         if_instrs: &[Instr],
         else_instrs: &[Instr],
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
     ) -> IntResult {
         let c = match self.stack.pop().unwrap() {
             Value::I32(c) => c,
@@ -299,17 +269,9 @@ impl Interpreter {
         };
 
         Ok(if c != 0 {
-            self.block(sframe, result_type, if_instrs, funcs, tables, globals, mems)?
+            self.block(sframe, result_type, if_instrs)?
         } else {
-            self.block(
-                sframe,
-                result_type,
-                else_instrs,
-                funcs,
-                tables,
-                globals,
-                mems,
-            )?
+            self.block(sframe, result_type, else_instrs)?
         })
     }
 
@@ -728,26 +690,17 @@ impl Interpreter {
     }
 
     /// GetGlobal
-    fn get_global(
-        &mut self,
-        idx: Index,
-        globals: &GlobalInstStore,
-        frame_globals: &[GlobalAddr],
-    ) -> IntResult {
-        self.stack.push(globals[frame_globals[idx as usize]].value);
+    fn get_global(&mut self, idx: Index, frame_globals: &[GlobalAddr]) -> IntResult {
+        self.stack
+            .push(self.globals[frame_globals[idx as usize]].value);
         Ok(Continue)
     }
 
     /// SetGlobal
-    fn set_global(
-        &mut self,
-        idx: Index,
-        globals: &mut GlobalInstStore,
-        frame_globals: &[GlobalAddr],
-    ) -> IntResult {
+    fn set_global(&mut self, idx: Index, frame_globals: &[GlobalAddr]) -> IntResult {
         // "Validation ensures that the global is, in fact, marked as mutable."
         let val = self.stack.pop().unwrap();
-        globals[frame_globals[idx as usize]].value = val;
+        self.globals[frame_globals[idx as usize]].value = val;
         Ok(Continue)
     }
 
@@ -770,15 +723,7 @@ impl Interpreter {
         Ok(Continue)
     }
 
-    fn call_module(
-        &mut self,
-        f_inst: &ModuleFuncInst,
-        sframe: &StackFrame,
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
-    ) -> IntResult {
+    fn call_module(&mut self, f_inst: &ModuleFuncInst, sframe: &StackFrame) -> IntResult {
         // Push locals
         for l in &f_inst.code.locals {
             match *l {
@@ -798,15 +743,7 @@ impl Interpreter {
             })?;
 
         // Execute the function inside a block
-        self.block(
-            &new_frame,
-            &f_inst.type_.result,
-            &f_inst.code.body,
-            funcs,
-            tables,
-            globals,
-            mems,
-        )?;
+        self.block(&new_frame, &f_inst.type_.result, &f_inst.code.body)?;
 
         // Remove locals/args
         let drain_start = frame_begin;
@@ -815,15 +752,7 @@ impl Interpreter {
         Ok(Continue)
     }
 
-    fn call_host(
-        &mut self,
-        f_inst: &HostFuncInst,
-        _sframe: &StackFrame,
-        _funcs: &FuncInstStore,
-        _tables: &TableInstStore,
-        _globals: &mut GlobalInstStore,
-        _mems: &mut MemInstStore,
-    ) -> IntResult {
+    fn call_host(&mut self, f_inst: &HostFuncInst, _sframe: &StackFrame) -> IntResult {
         /*
         let stack_before_call = self.stack.len();
         */
@@ -863,25 +792,13 @@ impl Interpreter {
     }
 
     /// Call a function directly
-    pub fn call(
-        &mut self,
-        f_addr: FuncAddr,
-        sframe: &StackFrame,
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
-    ) -> IntResult {
+    pub fn call(&mut self, f_addr: FuncAddr, sframe: &StackFrame) -> IntResult {
         // Idea: the new stack_idx is the base frame pointer, which point to the
         // first argument of the called function. When calling call, all
         // arguments should already be on the stack (thanks to validation).
-        match funcs[f_addr] {
-            FuncInst::Module(ref f_inst) => {
-                self.call_module(f_inst, sframe, funcs, tables, globals, mems)?
-            }
-            FuncInst::Host(ref f_inst) => {
-                self.call_host(f_inst, sframe, funcs, tables, globals, mems)?
-            }
+        match self.funcs[f_addr] {
+            FuncInst::Module(ref f_inst) => self.call_module(f_inst, sframe)?,
+            FuncInst::Host(ref f_inst) => self.call_host(f_inst, sframe)?,
         };
 
         Ok(Continue)
@@ -892,15 +809,11 @@ impl Interpreter {
         &mut self,
         idx: Index,
         sframe: &StackFrame,
-        funcs: &FuncInstStore,
-        tables: &TableInstStore,
-        globals: &mut GlobalInstStore,
-        mems: &mut MemInstStore,
         table_addrs: &[TableAddr],
         types: &[types::Func],
     ) -> IntResult {
         // For the MVP, only the table at index 0 exists and is implicitly refered
-        let tab = &tables[table_addrs[0]];
+        let tab = &self.tables[table_addrs[0]];
         let type_ = &types[idx as usize];
         let indirect_idx = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize,
@@ -922,7 +835,7 @@ impl Interpreter {
             }
         };
 
-        let f = &funcs[func_addr];
+        let f = &self.funcs[func_addr];
         let f_type_ = match *f {
             FuncInst::Module(ref f) => &f.type_,
             FuncInst::Host(ref f) => &f.type_,
@@ -932,7 +845,7 @@ impl Interpreter {
                 origin: TrapOrigin::CallIndirectTypesDiffer,
             });
         }
-        self.call(func_addr, sframe, funcs, tables, globals, mems)
+        self.call(func_addr, sframe)
     }
 
     /// Return to the caller of the current function
@@ -941,23 +854,19 @@ impl Interpreter {
     }
 
     /// Get the size of the current memory
-    fn current_memory(&mut self, memories: &MemInstStore, frame_memories: &[MemAddr]) -> IntResult {
+    fn current_memory(&mut self, frame_memories: &[MemAddr]) -> IntResult {
         self.stack
-            .push(Value::I32(memories.size(frame_memories[0]) as u32));
+            .push(Value::I32(self.mems.size(frame_memories[0]) as u32));
         Ok(Continue)
     }
 
     /// Grow the memory
-    fn grow_memory(
-        &mut self,
-        memories: &mut MemInstStore,
-        frame_memories: &[MemAddr],
-    ) -> IntResult {
+    fn grow_memory(&mut self, frame_memories: &[MemAddr]) -> IntResult {
         let new_pages = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize,
             _ => unreachable!(),
         };
-        if let Some(old_size) = memories.grow(frame_memories[0], new_pages) {
+        if let Some(old_size) = self.mems.grow(frame_memories[0], new_pages) {
             self.stack.push(Value::I32(old_size as u32));
         } else {
             self.stack.push(Value::from_i32(-1));
@@ -966,16 +875,11 @@ impl Interpreter {
     }
 
     /// Load memory (dispatcher)
-    fn load(
-        &mut self,
-        memop: &LoadOp,
-        memories: &MemInstStore,
-        frame_memories: &[MemAddr],
-    ) -> IntResult {
+    fn load(&mut self, memop: &LoadOp, frame_memories: &[MemAddr]) -> IntResult {
         use crate::types::Value as Tv;
         use crate::types::{Float, Int};
 
-        let mem = &memories[frame_memories[0]];
+        let mem = &self.mems[frame_memories[0]];
         let offset = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize + memop.offset as usize,
             _ => unreachable!(),
@@ -1040,16 +944,11 @@ impl Interpreter {
     }
 
     /// Store memory (dispatcher)
-    fn store(
-        &mut self,
-        memop: &StoreOp,
-        memories: &mut MemInstStore,
-        frame_memories: &[MemAddr],
-    ) -> IntResult {
+    fn store(&mut self, memop: &StoreOp, frame_memories: &[MemAddr]) -> IntResult {
         use crate::types::Value as Tv;
         use crate::types::{Float, Int};
 
-        let mem = &mut memories[frame_memories[0]];
+        let mem = &mut self.mems[frame_memories[0]];
         let c = self.stack.pop().unwrap();
         let offset = match self.stack.pop().unwrap() {
             Value::I32(c) => c as usize + memop.offset as usize,
