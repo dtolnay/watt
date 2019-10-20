@@ -11,6 +11,7 @@ pub mod values;
 
 pub use crate::ast::Module;
 pub use crate::error::Error;
+pub use crate::interpreter::Interpreter;
 pub use crate::runtime::{ExternVal, HostFunc};
 pub use crate::types::Extern;
 pub use crate::values::Value;

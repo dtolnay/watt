@@ -109,6 +109,16 @@ impl<'a> Interpreter<'a> {
         }
     }
 
+    /// Push a new value onto the stack
+    pub fn push(&mut self, val: Value) {
+        self.stack.push(val)
+    }
+
+    /// Pop a value from the stack
+    pub fn pop(&mut self) -> Option<Value> {
+        self.stack.pop()
+    }
+
     /// Intrepret a single instruction.
     /// This is the main dispatching function of the interpreter.
     fn instr(&mut self, instr: &Instr) -> IntResult {
@@ -758,7 +768,7 @@ impl<'a> Interpreter<'a> {
         let stack_before_call = self.stack.len();
         */
 
-        if let Some(err) = (f_inst.hostcode)(&mut self.stack) {
+        if let Some(err) = (f_inst.hostcode)(self) {
             return Err(Trap {
                 origin: TrapOrigin::HostFunction(err),
             });
