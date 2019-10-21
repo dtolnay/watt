@@ -965,7 +965,7 @@ impl<'a> Interpreter<'a> {
             Value::I32(c) => c as usize + memop.offset as usize,
             _ => unreachable!(),
         };
-        let size_in_bits = memop.opt.unwrap_or(memop.type_.bit_width());
+        let size_in_bits = memop.opt.unwrap_or_else(|| memop.type_.bit_width());
         let size_in_bytes: usize = (size_in_bits as usize) / 8;
 
         if offset + size_in_bytes > mem.data.len() {
