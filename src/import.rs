@@ -119,6 +119,13 @@ fn resolve(import: Import, store: &mut Store) -> ExternVal {
         "watt_bytes_new" => Box::new(sym::watt_bytes_new),
         "watt_print_panic" => Box::new(sym::watt_print_panic),
 
+        // to be removed in 0.2
+        "watt_string_with_capacity" => Box::new(sym::watt_string_with_capacity),
+        "watt_string_push_char" => Box::new(sym::watt_string_push_char),
+        "watt_string_char_at" => Box::new(sym::watt_string_char_at),
+        "watt_bytes_with_capacity" => Box::new(sym::watt_bytes_with_capacity),
+        "watt_bytes_push" => Box::new(sym::watt_bytes_push),
+
         _ => unreachable!("unresolved import: {:?}", name),
     };
     ExternVal::Func(alloc_func(store, &func, hostfunc))

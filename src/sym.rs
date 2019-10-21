@@ -1024,6 +1024,62 @@ pub fn watt_print_panic(interp: &mut Interpreter) -> Option<String> {
     Data::with(|d| panic!("{}", d.string[pop(interp)]))
 }
 
+// args: [Int(I32)]
+// result: [Int(I32)]
+pub fn watt_string_with_capacity(interp: &mut Interpreter) -> Option<String> {
+    Data::with(|d| {
+        let cap = pop(interp) as usize;
+        let string = d.string.push(String::with_capacity(cap));
+        interp.push(Value::I32(string));
+        None
+    })
+}
+
+// args: [Int(I32), Int(I32)]
+// result: []
+pub fn watt_string_push_char(interp: &mut Interpreter) -> Option<String> {
+    Data::with(|d| {
+        let ch = pop(interp);
+        let string = &mut d.string[pop(interp)];
+        string.push(char::from_u32(ch).unwrap());
+        None
+    })
+}
+
+// args: [Int(I32), Int(I32)]
+// result: [Int(I32)]
+pub fn watt_string_char_at(interp: &mut Interpreter) -> Option<String> {
+    Data::with(|d| {
+        let pos = pop(interp) as usize;
+        let string = &d.string[pop(interp)];
+        let ch = string[pos..].chars().next().unwrap() as u32;
+        interp.push(Value::I32(ch));
+        None
+    })
+}
+
+// args: [Int(I32)]
+// result: [Int(I32)]
+pub fn watt_bytes_with_capacity(interp: &mut Interpreter) -> Option<String> {
+    Data::with(|d| {
+        let cap = pop(interp) as usize;
+        let string = d.bytes.push(Vec::with_capacity(cap));
+        interp.push(Value::I32(string));
+        None
+    })
+}
+
+// args: [Int(I32), Int(I32)]
+// result: []
+pub fn watt_bytes_push(interp: &mut Interpreter) -> Option<String> {
+    Data::with(|d| {
+        let b = pop(interp) as u8;
+        let bytes = &mut d.bytes[pop(interp)];
+        bytes.push(b);
+        None
+    })
+}
+
 fn pop(interp: &mut Interpreter) -> u32 {
     match interp.pop() {
         Some(Value::I32(int)) => int,
