@@ -96,12 +96,10 @@ extern "C" {
     fn literal_debug(stream: handle::Literal) -> handle::String;
     fn span_debug(stream: handle::Span) -> handle::String;
 
-    fn watt_string_with_capacity(capacity: u32) -> handle::String;
-    fn watt_string_push_char(string: handle::String, ch: u32);
+    fn watt_string_new(ptr: *const u8, len: u32) -> handle::String;
     fn watt_string_len(string: handle::String) -> u32;
-    fn watt_string_char_at(string: handle::String, pos: u32) -> u32;
-    fn watt_bytes_with_capacity(capacity: u32) -> handle::Bytes;
-    fn watt_bytes_push(bytes: handle::Bytes, byte: u8);
+    fn watt_string_read(string: handle::String, ptr: *mut u8);
+    fn watt_bytes_new(ptr: *const u8, len: u32) -> handle::Bytes;
     fn watt_print_panic(message: handle::String);
 }
 
@@ -170,40 +168,23 @@ mod ffi {
     use super::*;
 
     pub fn send_str(data: &str) -> handle::String {
-        let cap = data.len() as u32;
-        unsafe {
-            let string = watt_string_with_capacity(cap);
-            for ch in data.chars() {
-                watt_string_push_char(string, ch as u32);
-            }
-            string
-        }
+        let len = data.len() as u32;
+        unsafe { watt_string_new(data.as_ptr(), len) }
     }
 
     pub fn recv_string(handle: handle::String) -> String {
         unsafe {
             let len = watt_string_len(handle);
-            let mut string = String::with_capacity(len as usize);
-            let mut pos = 0;
-            while pos < len {
-                let num = watt_string_char_at(handle, pos);
-                let ch = char::from_u32(num).unwrap();
-                string.push(ch);
-                pos += ch.len_utf8() as u32;
-            }
-            string
+            let mut bytes = Vec::with_capacity(len as usize);
+            watt_string_read(handle, bytes.as_mut_ptr());
+            bytes.set_len(len as usize);
+            String::from_utf8_unchecked(bytes)
         }
     }
 
     pub fn send_bytes(data: &[u8]) -> handle::Bytes {
-        let cap = data.len() as u32;
-        unsafe {
-            let bytes = watt_bytes_with_capacity(cap);
-            for b in data {
-                watt_bytes_push(bytes, *b);
-            }
-            bytes
-        }
+        let len = data.len() as u32;
+        unsafe { watt_bytes_new(data.as_ptr(), len) }
     }
 }
 

@@ -275,9 +275,9 @@ fn init_spectest(store: &mut Store, registry: &mut Registry) {
 
     fn print(store: &mut Store, args_types: Vec<types::Value>) -> ExternVal {
         let args_len = args_types.len();
-        let func = move |stack: &mut Vec<values::Value>| {
-            for val in &stack[(stack.len() - args_len)..stack.len()] {
-                println!("{:?}", val);
+        let func = move |interp: &mut Interpreter| {
+            for _ in 0..args_len {
+                println!("{:?}", interp.pop().unwrap())
             }
             None
         };

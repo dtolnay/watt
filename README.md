@@ -153,16 +153,10 @@ crate, to the src directory of your shim crate, and it's ready to publish!
   downstream `cargo build` will be running a release-mode macro when it would
   have been running debug-mode for a traditional proc macro.
 
-  There is a great deal of low-hanging fruit in the runtime; as I said, it
-  hasn't been optimized. In particular I am doing something silly with how
-  strings are handed off one character at a time instead of in bulk in memory. I
-  would love contributions from people who have a better idea of how this stuff
-  is intended to work in Wasm in general.
-
-  As another idea, maybe there could be some kind of `cargo install
-  watt-runtime` which installs an optimized Wasm runtime locally, which the Watt
-  crate can detect and hand off code to if available. That way we avoid running
-  things in a debug-mode runtime altogether.
+  A neat approach would be to provide some kind of `cargo install watt-runtime`
+  which installs an optimized Wasm runtime locally, which the Watt crate can
+  detect and hand off code to if available. That way we avoid running things in
+  a debug-mode runtime altogether.
 
 - **Tooling.**&emsp;The getting started section shows there are a lot of steps
   to building a macro for Watt, and a pretty hacky patching in of proc-macro2.

@@ -1,4 +1,4 @@
-use crate::{ast, types, values};
+use crate::{ast, types, values, Interpreter};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
@@ -32,7 +32,7 @@ pub struct GlobalInst {
 }
 
 pub type HostFunctionError = String;
-pub type HostFunc = Box<dyn Fn(&mut Vec<values::Value>) -> Option<HostFunctionError>>;
+pub type HostFunc = Box<dyn Fn(&mut Interpreter) -> Option<HostFunctionError>>;
 
 pub struct HostFuncInst {
     pub type_: types::Func,

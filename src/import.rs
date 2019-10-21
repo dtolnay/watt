@@ -113,12 +113,10 @@ fn resolve(import: Import, store: &mut Store) -> ExternVal {
         "literal_debug" => Box::new(sym::literal_debug),
         "span_debug" => Box::new(sym::span_debug),
 
-        "watt_string_with_capacity" => Box::new(sym::watt_string_with_capacity),
-        "watt_string_push_char" => Box::new(sym::watt_string_push_char),
+        "watt_string_new" => Box::new(sym::watt_string_new),
         "watt_string_len" => Box::new(sym::watt_string_len),
-        "watt_string_char_at" => Box::new(sym::watt_string_char_at),
-        "watt_bytes_with_capacity" => Box::new(sym::watt_bytes_with_capacity),
-        "watt_bytes_push" => Box::new(sym::watt_bytes_push),
+        "watt_string_read" => Box::new(sym::watt_string_read),
+        "watt_bytes_new" => Box::new(sym::watt_bytes_new),
         "watt_print_panic" => Box::new(sym::watt_print_panic),
 
         _ => unreachable!("unresolved import: {:?}", name),
