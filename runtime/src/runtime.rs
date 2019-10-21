@@ -160,7 +160,7 @@ impl FuncInstStore {
             FuncInst::Module(ModuleFuncInst {
                 type_: functype.clone(),
                 module: Rc::clone(minst),
-                code: code,
+                code,
             }),
             functype,
         )

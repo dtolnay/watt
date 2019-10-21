@@ -2,7 +2,6 @@
     clippy::cognitive_complexity,
     clippy::float_cmp,
     clippy::new_without_default,
-    clippy::redundant_field_names,
     clippy::too_many_arguments,
     clippy::trivially_copy_pass_by_ref,
     clippy::unreadable_literal,
@@ -461,7 +460,7 @@ pub fn instantiate_module(
         let ext_type = store
             .types_map
             .get(&TypeKey {
-                extern_val: extern_val,
+                extern_val,
             })
             .ok_or(Error::UnknownImport)?;
         if !ext_type.matches_(&import.type_(&module)) {

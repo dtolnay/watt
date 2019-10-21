@@ -65,7 +65,7 @@ const STACK_BUDGET: usize = 300;
 impl StackFrame {
     pub fn new(module: Option<Rc<ModuleInst>>) -> StackFrame {
         StackFrame {
-            module: module,
+            module,
             stack_idx: 0,
             nested_levels: STACK_BUDGET,
         }
@@ -84,8 +84,8 @@ impl StackFrame {
         }
 
         Some(StackFrame {
-            module: module,
-            stack_idx: stack_idx,
+            module,
+            stack_idx,
             nested_levels: self.nested_levels - 1,
         })
     }

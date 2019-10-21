@@ -119,8 +119,8 @@ fn push_frame<'a>(
     operands_len: usize,
 ) {
     frames.push(Frame {
-        label_type: label_type,
-        end_type: end_type,
+        label_type,
+        end_type,
         init_len: operands_len,
         unreachable: false,
     });
