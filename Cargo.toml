@@ -1,6 +1,6 @@
 [package]
 name = "watt"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "Runtime for executing Rust procedural macros compiled as WebAssembly."
