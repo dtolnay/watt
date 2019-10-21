@@ -2,7 +2,6 @@
     clippy::cognitive_complexity,
     clippy::float_cmp,
     clippy::new_without_default,
-    clippy::ptr_arg,
     clippy::redundant_field_names,
     clippy::too_many_arguments,
     clippy::trivially_copy_pass_by_ref,

@@ -60,7 +60,7 @@ fn require(b: bool) -> Option<()> {
     }
 }
 
-fn pop_operand(operands: &mut Vec<Operand>, frames: &Vec<Frame>) -> Option<Operand> {
+fn pop_operand(operands: &mut Vec<Operand>, frames: &[Frame]) -> Option<Operand> {
     debug_assert!(
         !frames.is_empty(),
         "validation of instructions should always happen in a frame"
@@ -82,7 +82,7 @@ fn pop_operand(operands: &mut Vec<Operand>, frames: &Vec<Frame>) -> Option<Opera
 
 fn pop_expected(
     operands: &mut Vec<Operand>,
-    frames: &Vec<Frame>,
+    frames: &[Frame],
     expected: Operand,
 ) -> Option<Operand> {
     let actual = pop_operand(operands, frames)?;
@@ -97,7 +97,7 @@ fn pop_expected(
 
 fn exact_step(
     operands: &mut Vec<Operand>,
-    frames: &Vec<Frame>,
+    frames: &[Frame],
     from: &[types::Value],
     to: &[types::Value],
 ) -> Option<()> {
@@ -152,7 +152,7 @@ fn unreachable(frames: &mut Vec<Frame>, operands: &mut Vec<Operand>) {
     curr_frame.unreachable = true;
 }
 
-fn get_label<'a>(frames: &Vec<Frame<'a>>, nesting_levels: u32) -> Option<&'a [types::Value]> {
+fn get_label<'a>(frames: &[Frame<'a>], nesting_levels: u32) -> Option<&'a [types::Value]> {
     debug_assert!(
         !frames.is_empty(),
         "validation of instructions should always happen in a frame"
