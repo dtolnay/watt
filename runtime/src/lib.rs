@@ -4,7 +4,7 @@
     clippy::new_without_default,
     clippy::too_many_arguments,
     clippy::trivially_copy_pass_by_ref,
-    clippy::unreadable_literal,
+    clippy::unreadable_literal
 )]
 
 #[macro_use]
@@ -459,9 +459,7 @@ pub fn instantiate_module(
     for (&extern_val, import) in extern_vals.iter().zip(module.imports.iter()) {
         let ext_type = store
             .types_map
-            .get(&TypeKey {
-                extern_val,
-            })
+            .get(&TypeKey { extern_val })
             .ok_or(Error::UnknownImport)?;
         if !ext_type.matches_(&import.type_(&module)) {
             return Err(Error::ImportTypeMismatch);

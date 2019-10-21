@@ -11,11 +11,7 @@ pub const VERSION: u32 = 1;
 
 /// Decode a Web Assembly module from the given `reader`
 pub fn decode<R: Read>(reader: R) -> Result<Module, DecodeError> {
-    Decoder {
-        reader,
-        pos: 0,
-    }
-    .read_module()
+    Decoder { reader, pos: 0 }.read_module()
 }
 
 #[derive(Debug)]
