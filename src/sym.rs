@@ -972,24 +972,15 @@ pub fn span_debug(interp: &mut Interpreter) -> Option<String> {
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_with_capacity(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let cap = pop(interp) as usize;
-        let string = d.string.push(String::with_capacity(cap));
-        interp.push(Value::I32(string));
-        None
-    })
-}
-
 // args: [Int(I32), Int(I32)]
-// result: []
-pub fn watt_string_push_char(interp: &mut Interpreter) -> Option<String> {
+// result: [Int(I32)]
+pub fn watt_string_new(interp: &mut Interpreter) -> Option<String> {
     Data::with(|d| {
-        let ch = pop(interp);
-        let string = &mut d.string[pop(interp)];
-        string.push(char::from_u32(ch).unwrap());
+        let len = pop(interp) as usize;
+        let ptr = pop(interp) as usize;
+        let bytes = interp.get_memory_mut()[ptr..ptr + len].to_owned();
+        let string = String::from_utf8(bytes).expect("non-utf8");
+        interp.push(Value::I32(d.string.push(string)));
         None
     })
 }
@@ -1005,35 +996,24 @@ pub fn watt_string_len(interp: &mut Interpreter) -> Option<String> {
 }
 
 // args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_char_at(interp: &mut Interpreter) -> Option<String> {
+// result: []
+pub fn watt_string_read(interp: &mut Interpreter) -> Option<String> {
     Data::with(|d| {
-        let pos = pop(interp) as usize;
+        let ptr = pop(interp) as usize;
         let string = &d.string[pop(interp)];
-        let ch = string[pos..].chars().next().unwrap() as u32;
-        interp.push(Value::I32(ch));
-        None
-    })
-}
-
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn watt_bytes_with_capacity(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let cap = pop(interp) as usize;
-        let string = d.bytes.push(Vec::with_capacity(cap));
-        interp.push(Value::I32(string));
+        interp.get_memory_mut()[ptr..ptr + string.len()].copy_from_slice(string.as_bytes());
         None
     })
 }
 
 // args: [Int(I32), Int(I32)]
-// result: []
-pub fn watt_bytes_push(interp: &mut Interpreter) -> Option<String> {
+// result: [Int(I32)]
+pub fn watt_bytes_new(interp: &mut Interpreter) -> Option<String> {
     Data::with(|d| {
-        let b = pop(interp) as u8;
-        let bytes = &mut d.bytes[pop(interp)];
-        bytes.push(b);
+        let len = pop(interp) as usize;
+        let ptr = pop(interp) as usize;
+        let bytes = interp.get_memory_mut()[ptr..ptr + len].to_owned();
+        interp.push(Value::I32(d.bytes.push(bytes)));
         None
     })
 }

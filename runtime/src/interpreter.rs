@@ -121,7 +121,7 @@ impl<'a> Interpreter<'a> {
 
     /// Get mutable access to the underlying memory associated with the current stack frame.
     pub fn get_memory_mut(&mut self) -> &mut [u8] {
-        &mut self.mems[self.frame.module().mem_addrs[0]]
+        &mut self.mems[self.frame.module().mem_addrs[0]].data
     }
 
     /// Intrepret a single instruction.
