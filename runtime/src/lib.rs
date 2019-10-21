@@ -3,7 +3,6 @@
     clippy::float_cmp,
     clippy::new_without_default,
     clippy::too_many_arguments,
-    clippy::trivially_copy_pass_by_ref,
     clippy::unreadable_literal
 )]
 

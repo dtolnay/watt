@@ -155,13 +155,13 @@ impl<'a> Interpreter<'a> {
             CurrentMemory => self.current_memory(),
             GrowMemory => self.grow_memory(),
             Const(c) => self.const_(c),
-            IUnary(ref t, ref op) => self.iunary(t, op),
-            FUnary(ref t, ref op) => self.funary(t, op),
-            IBin(ref t, ref op) => self.ibin(t, op),
-            FBin(ref t, ref op) => self.fbin(t, op),
-            ITest(ref t, ref op) => self.itest(t, op),
-            IRel(ref t, ref op) => self.irel(t, op),
-            FRel(ref t, ref op) => self.frel(t, op),
+            IUnary(t, ref op) => self.iunary(t, op),
+            FUnary(t, ref op) => self.funary(t, op),
+            IBin(t, ref op) => self.ibin(t, op),
+            FBin(t, ref op) => self.fbin(t, op),
+            ITest(t, ref op) => self.itest(t, op),
+            IRel(t, ref op) => self.irel(t, op),
+            FRel(t, ref op) => self.frel(t, op),
             Convert(ref op) => self.cvtop(op),
         }
     }
@@ -314,7 +314,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an IUnop
-    fn iunary(&mut self, _t: &types::Int, op: &IUnOp) -> IntResult {
+    fn iunary(&mut self, _t: types::Int, op: &IUnOp) -> IntResult {
         // Validation should assert that the top of the stack exists and has the type t
         let v = match self.stack.pop().unwrap() {
             Value::I32(c) => Value::I32(self.type_iunary(c, op)),
@@ -337,7 +337,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an FUnOp
-    fn funary(&mut self, _t: &types::Float, op: &FUnOp) -> IntResult {
+    fn funary(&mut self, _t: types::Float, op: &FUnOp) -> IntResult {
         // Validation should assert that the top of the stack exists and has the type t
         let v = match self.stack.pop().unwrap() {
             Value::F32(c) => Value::F32(self.type_funary(c, op)),
@@ -364,7 +364,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an IBinOp
-    fn ibin(&mut self, _t: &types::Int, op: &IBinOp) -> IntResult {
+    fn ibin(&mut self, _t: types::Int, op: &IBinOp) -> IntResult {
         // Validation should assert that there are two values on top of the
         // stack having the same integer type t
         let res = match self.pop2() {
@@ -409,7 +409,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an FBinOp
-    fn fbin(&mut self, _t: &types::Float, op: &FBinOp) -> IntResult {
+    fn fbin(&mut self, _t: types::Float, op: &FBinOp) -> IntResult {
         // Validation should assert that there are two values on top of the
         // stack having the same type t
         let res = match self.pop2() {
@@ -437,7 +437,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an ITestOp
-    fn itest(&mut self, _t: &types::Int, op: &ITestOp) -> IntResult {
+    fn itest(&mut self, _t: types::Int, op: &ITestOp) -> IntResult {
         // Validation should assert that the top of the stack exists and has the type t
         let v = match self.stack.pop().unwrap() {
             Value::I32(c) => Value::from_bool(self.type_itest(c, op)),
@@ -458,7 +458,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an IRelOp
-    fn irel(&mut self, _t: &types::Int, op: &IRelOp) -> IntResult {
+    fn irel(&mut self, _t: types::Int, op: &IRelOp) -> IntResult {
         // Validation should assert that there are two values on top of the
         // stack having the same integer type t
         let res = match self.pop2() {
@@ -489,7 +489,7 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Dispatch an FRelOp
-    fn frel(&mut self, _t: &types::Float, op: &FRelOp) -> IntResult {
+    fn frel(&mut self, _t: types::Float, op: &FRelOp) -> IntResult {
         // Validation should assert that there are two values on top of the
         // stack having the same integer type t
         let res = match self.pop2() {

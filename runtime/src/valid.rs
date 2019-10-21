@@ -524,8 +524,8 @@ fn check_data(mod_ctx: &ModContext, data: &ast::Segment<u8>) -> Option<()> {
     check_const_expr(mod_ctx, &data.offset, Int(I32))
 }
 
-fn check_start(mod_ctx: &ModContext, start: &ast::Index) -> Option<()> {
-    let func = mod_ctx.funcs.get(*start as usize)?;
+fn check_start(mod_ctx: &ModContext, start: ast::Index) -> Option<()> {
+    let func = mod_ctx.funcs.get(start as usize)?;
     require(func.args.is_empty() && func.result.is_empty())
 }
 
@@ -620,7 +620,7 @@ fn check_module(module: &ast::Module) -> Option<()> {
     for data in &module.data {
         check_data(&mod_ctx, data)?;
     }
-    if let Some(func) = &module.start {
+    if let Some(func) = module.start {
         check_start(&mod_ctx, func)?;
     }
     let mut unique_exports = HashSet::new();

@@ -17,8 +17,8 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn bit_width(&self) -> u32 {
-        match *self {
+    pub fn bit_width(self) -> u32 {
+        match self {
             Value::Int(Int::I32) | Value::Float(Float::F32) => 32,
             Value::Int(Int::I64) | Value::Float(Float::F64) => 64,
         }
