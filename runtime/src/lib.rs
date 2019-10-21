@@ -46,11 +46,17 @@ pub enum Error {
     CodeTrapped(Trap),
     InvalidModule,
     ExportNotFound,
+    #[cfg(feature = "test")]
     InvalidTableRead,
+    #[cfg(feature = "test")]
     InvalidTableWrite,
+    #[cfg(feature = "test")]
     InvalidMemoryRead,
+    #[cfg(feature = "test")]
     InvalidMemoryWrite,
+    #[cfg(feature = "test")]
     GlobalImmutable,
+    #[cfg(feature = "test")]
     GrowMemoryFailed,
     StackOverflow,
 }
