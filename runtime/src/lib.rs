@@ -1,3 +1,16 @@
+#![allow(
+    clippy::cognitive_complexity,
+    clippy::float_cmp,
+    clippy::new_without_default,
+    clippy::or_fun_call,
+    clippy::precedence,
+    clippy::ptr_arg,
+    clippy::redundant_field_names,
+    clippy::too_many_arguments,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::unreadable_literal,
+)]
+
 #[macro_use]
 pub mod interpreter;
 pub mod ast;
