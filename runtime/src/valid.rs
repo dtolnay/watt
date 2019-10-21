@@ -620,7 +620,7 @@ fn check_module(module: &ast::Module) -> Option<()> {
     for data in &module.data {
         check_data(&mod_ctx, data)?;
     }
-    if let Some(ref func) = module.start {
+    if let Some(func) = &module.start {
         check_start(&mod_ctx, func)?;
     }
     let mut unique_exports = HashSet::new();

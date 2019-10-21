@@ -118,11 +118,11 @@ pub fn module_exports<'a>(
     let mut global_import_types = Vec::new();
     for import in &module.imports {
         use crate::ast::*;
-        match import.desc {
-            ImportDesc::Func(idx) => func_import_types.push(module.types[idx as usize].clone()),
-            ImportDesc::Table(ref type_) => table_import_types.push(type_.clone()),
-            ImportDesc::Memory(ref type_) => mem_import_types.push(type_.clone()),
-            ImportDesc::Global(ref type_) => global_import_types.push(type_.clone()),
+        match &import.desc {
+            ImportDesc::Func(idx) => func_import_types.push(module.types[*idx as usize].clone()),
+            ImportDesc::Table(type_) => table_import_types.push(type_.clone()),
+            ImportDesc::Memory(type_) => mem_import_types.push(type_.clone()),
+            ImportDesc::Global(type_) => global_import_types.push(type_.clone()),
         };
     }
 
@@ -197,7 +197,7 @@ pub fn type_func(store: &Store, funcaddr: FuncAddr) -> types::Func {
     match store.types_map.get(&TypeKey {
         extern_val: ExternVal::Func(funcaddr),
     }) {
-        Some(&types::Extern::Func(ref type_)) => type_.clone(),
+        Some(types::Extern::Func(type_)) => type_.clone(),
         _ => unreachable!(),
     }
 }
@@ -210,9 +210,9 @@ pub fn invoke_func(
 ) -> Result<Vec<values::Value>, Error> {
     assert!(store.funcs.contains(funcaddr));
     let funcinst = &store.funcs[funcaddr];
-    let functype = match *funcinst {
-        FuncInst::Module(ref f) => &f.type_,
-        FuncInst::Host(ref f) => &f.type_,
+    let functype = match funcinst {
+        FuncInst::Module(f) => &f.type_,
+        FuncInst::Host(f) => &f.type_,
     };
 
     if functype.args.len() != args.len() {
@@ -262,7 +262,7 @@ pub fn type_table(store: &Store, tableaddr: TableAddr) -> types::Table {
     match store.types_map.get(&TypeKey {
         extern_val: ExternVal::Table(tableaddr),
     }) {
-        Some(&types::Extern::Table(ref type_)) => type_.clone(),
+        Some(types::Extern::Table(type_)) => type_.clone(),
         _ => unreachable!(),
     }
 }
@@ -331,7 +331,7 @@ pub fn type_mem(store: &Store, memaddr: MemAddr) -> types::Memory {
     match store.types_map.get(&TypeKey {
         extern_val: ExternVal::Memory(memaddr),
     }) {
-        Some(&types::Extern::Memory(ref type_)) => type_.clone(),
+        Some(types::Extern::Memory(type_)) => type_.clone(),
         _ => unreachable!(),
     }
 }
@@ -395,7 +395,7 @@ pub fn type_global(store: &Store, globaladdr: GlobalAddr) -> types::Global {
     match store.types_map.get(&TypeKey {
         extern_val: ExternVal::Global(globaladdr),
     }) {
-        Some(&types::Extern::Global(ref type_)) => type_.clone(),
+        Some(types::Extern::Global(type_)) => type_.clone(),
         _ => unreachable!(),
     }
 }

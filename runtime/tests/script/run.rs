@@ -71,8 +71,8 @@ pub fn run<P: AsRef<Path>>(path: P) {
 }
 
 fn decode_module_src(module: &ModuleSource) -> (Option<String>, ast::Module) {
-    match *module {
-        ModuleSource::Binary(ref name, ref bytes) => {
+    match module {
+        ModuleSource::Binary(name, bytes) => {
             (name.clone(), decode_module(Cursor::new(bytes)).unwrap())
         }
         ModuleSource::Quoted(_, _) => unimplemented!("quoted modules are not supported"),
@@ -86,8 +86,8 @@ fn run_assertion(store: &mut Store, registry: &Registry, assertion: Assertion) {
     match assertion {
         Return(action, expected) => {
             let result = run_action(store, registry, &action);
-            match result {
-                Ok(ref actual) if *actual == expected => {}
+            match &result {
+                Ok(actual) if *actual == expected => {}
                 _ => {
                     panic!(
                         "the result of the action `{:?}` is `{:?}` but should be `{:?}`",
@@ -210,11 +210,11 @@ fn run_action(
     registry: &Registry,
     action: &Action,
 ) -> Result<Vec<values::Value>, Error> {
-    match *action {
+    match action {
         Action::Invoke {
-            mod_ref: ref mod_name,
-            ref func,
-            ref args,
+            mod_ref: mod_name,
+            func,
+            args,
         } => {
             let mod_name = if mod_name.is_some() {
                 mod_name
@@ -227,8 +227,8 @@ fn run_action(
             }
         }
         Action::Get {
-            mod_ref: ref mod_name,
-            ref global,
+            mod_ref: mod_name,
+            global,
         } => {
             let mod_name = if mod_name.is_some() {
                 mod_name
@@ -348,7 +348,7 @@ fn resolve_imports(m: &ast::Module, registry: &Registry) -> Result<Vec<ExternVal
     module_imports(m)
         .map(|(mod_name, import_name, _)| {
             match registry.mod_exports.get(&Some(mod_name.to_owned())) {
-                Some(ref mod_exports) => match mod_exports.get(import_name) {
+                Some(mod_exports) => match mod_exports.get(import_name) {
                     Some(val) => Ok(val.clone()),
                     None => Err(UnknownImport::UnknownSymbol {
                         mod_name: mod_name.to_owned(),
