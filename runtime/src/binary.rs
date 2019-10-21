@@ -104,7 +104,7 @@ impl<R: Read> Decoder<R> {
 
             // forbid unused bits
             if shift >= 32 - 32 % 7 {
-                let mask = ((-1 << (32 % 7) - 1) & 0x7f) as u8;
+                let mask = ((-1 << ((32 % 7) - 1)) & 0x7f) as u8;
                 if b & mask != 0 && b & mask != mask {
                     return Err(DecodeError::MalformedBinary);
                 }
