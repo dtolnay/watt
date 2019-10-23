@@ -181,7 +181,7 @@
 extern crate proc_macro;
 
 #[path = "../runtime/src/lib.rs"]
-mod watt;
+mod runtime;
 
 mod data;
 mod debug;
@@ -189,7 +189,6 @@ mod exec;
 mod import;
 mod sym;
 
-use crate::watt::*;
 use proc_macro::TokenStream;
 
 /// A #\[proc_macro\] implemented in wasm!

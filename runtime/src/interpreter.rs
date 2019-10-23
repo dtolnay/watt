@@ -1,8 +1,8 @@
-use crate::ast::*;
-use crate::ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
-use crate::runtime::*;
-use crate::types;
-use crate::values::Value;
+use super::ast::*;
+use super::ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
+use super::runtime::*;
+use super::types;
+use super::values::Value;
 use std::mem;
 use std::rc::Rc;
 
@@ -127,7 +127,7 @@ impl<'a> Interpreter<'a> {
     /// Intrepret a single instruction.
     /// This is the main dispatching function of the interpreter.
     fn instr(&mut self, instr: &Instr) -> IntResult {
-        use crate::ast::Instr::*;
+        use super::ast::Instr::*;
 
         match *instr {
             Unreachable => self.unreachable(),
@@ -517,8 +517,8 @@ impl<'a> Interpreter<'a> {
 
     /// Dispatch a ConvertOp
     fn cvtop(&mut self, op: &ConvertOp) -> IntResult {
-        use crate::types::Value as tv;
-        use crate::types::{Float, Int};
+        use super::types::Value as tv;
+        use super::types::{Float, Int};
 
         let c = self.stack.pop().unwrap();
         let cls = |&op, &c| {
@@ -887,8 +887,8 @@ impl<'a> Interpreter<'a> {
 
     /// Load memory (dispatcher)
     fn load(&mut self, memop: &LoadOp) -> IntResult {
-        use crate::types::Value as Tv;
-        use crate::types::{Float, Int};
+        use super::types::Value as Tv;
+        use super::types::{Float, Int};
 
         let mem = &self.mems[self.frame.module().mem_addrs[0]];
         let offset = match self.stack.pop().unwrap() {
@@ -956,8 +956,8 @@ impl<'a> Interpreter<'a> {
 
     /// Store memory (dispatcher)
     fn store(&mut self, memop: &StoreOp) -> IntResult {
-        use crate::types::Value as Tv;
-        use crate::types::{Float, Int};
+        use super::types::Value as Tv;
+        use super::types::{Float, Int};
 
         let mem = &mut self.mems[self.frame.module().mem_addrs[0]];
         let c = self.stack.pop().unwrap();

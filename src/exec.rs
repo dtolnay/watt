@@ -1,5 +1,5 @@
 use crate::data::Data;
-use crate::watt::{
+use crate::runtime::{
     decode_module, get_export, init_store, instantiate_module, invoke_func, ExternVal, Value,
 };
 use crate::{debug, import};

@@ -1,4 +1,4 @@
-use crate::{ast, types, values, Interpreter};
+use super::{ast, types, values, Interpreter};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;

@@ -1,7 +1,7 @@
-use crate::types::Float::*;
-use crate::types::Int::*;
-use crate::types::Value::*;
-use crate::{ast, types};
+use super::types::Float::*;
+use super::types::Int::*;
+use super::types::Value::*;
+use super::{ast, types};
 use std::collections::HashSet;
 
 static EMPTY_TYPE: [types::Value; 0] = [];
@@ -214,7 +214,7 @@ fn check_instr<'a>(
     frames: &mut Vec<Frame<'a>>,
     instr: &'a ast::Instr,
 ) -> Option<()> {
-    use crate::ast::Instr::*;
+    use super::ast::Instr::*;
 
     match *instr {
         Nop => {}
@@ -441,7 +441,7 @@ fn check_convert_op(
     frames: &mut Vec<Frame>,
     convert_op: &ast::ConvertOp,
 ) -> Option<()> {
-    use crate::ast::ConvertOp::*;
+    use super::ast::ConvertOp::*;
 
     match *convert_op {
         I32WrapI64 => exact_step(operands, frames, &[Int(I64)], &[Int(I32)]),
@@ -530,7 +530,7 @@ fn check_start(mod_ctx: &ModContext, start: ast::Index) -> Option<()> {
 }
 
 fn check_export(mod_ctx: &ModContext, export: &ast::Export) -> Option<()> {
-    use crate::ast::ExportDesc::*;
+    use super::ast::ExportDesc::*;
 
     match export.desc {
         Func(x) => require((x as usize) < mod_ctx.funcs.len()),
@@ -542,7 +542,7 @@ fn check_export(mod_ctx: &ModContext, export: &ast::Export) -> Option<()> {
 
 /// Validate an import and insert it into the context of the module
 fn check_import<'a>(ctx: &mut ModContext<'a>, import: &'a ast::Import) -> Option<()> {
-    use crate::ast::ImportDesc::*;
+    use super::ast::ImportDesc::*;
 
     match import.desc {
         Func(x) => {

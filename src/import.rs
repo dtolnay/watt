@@ -1,5 +1,5 @@
+use crate::runtime::{alloc_func, module_imports, Extern, ExternVal, HostFunc, Module, Store};
 use crate::sym;
-use crate::watt::{alloc_func, module_imports, Extern, ExternVal, HostFunc, Module, Store};
 
 type Import<'a> = (&'a str, &'a str, Extern);
 

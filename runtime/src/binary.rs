@@ -1,7 +1,7 @@
-use crate::ast::*;
-use crate::ops::IntOp;
-use crate::types;
-use crate::values::Value;
+use super::ast::*;
+use super::ops::IntOp;
+use super::types;
+use super::values::Value;
 use std::io::Read;
 use std::{i32, i64, io};
 
@@ -244,10 +244,10 @@ impl<R: Read> Decoder<R> {
     }
 
     fn read_meta_instr(&mut self) -> DecodeResult<MetaInstr> {
-        use crate::ast::Instr::*;
-        use crate::types::Float::*;
-        use crate::types::Int::*;
-        use crate::types::Value::*;
+        use super::ast::Instr::*;
+        use super::types::Float::*;
+        use super::types::Int::*;
+        use super::types::Value::*;
 
         let opcode = self.read_byte()?;
 
@@ -845,7 +845,7 @@ enum MetaInstr {
 }
 
 fn decode_value_type(b: u8) -> DecodeResult<types::Value> {
-    use crate::types::*;
+    use super::types::*;
 
     match b {
         0x7f => Ok(Value::Int(Int::I32)),

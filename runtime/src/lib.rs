@@ -16,17 +16,17 @@ pub mod types;
 mod valid;
 pub mod values;
 
-pub use crate::ast::Module;
-pub use crate::interpreter::Interpreter;
-pub use crate::runtime::{ExternVal, HostFunc};
-pub use crate::types::Extern;
-pub use crate::values::Value;
+pub use self::ast::Module;
+pub use self::interpreter::Interpreter;
+pub use self::runtime::{ExternVal, HostFunc};
+pub use self::types::Extern;
+pub use self::values::Value;
 
 #[cfg(feature = "test")]
-pub use crate::runtime::{FuncAddr, GlobalAddr, MemAddr, ModuleInst, TableAddr, PAGE_SIZE};
+pub use self::runtime::{FuncAddr, GlobalAddr, MemAddr, ModuleInst, TableAddr, PAGE_SIZE};
 
-use crate::interpreter::{eval_const_expr, Trap, TrapOrigin};
-use crate::runtime::*;
+use self::interpreter::{eval_const_expr, Trap, TrapOrigin};
+use self::runtime::*;
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::rc::Rc;
@@ -125,7 +125,7 @@ pub fn module_exports<'a>(
     let mut mem_import_types = Vec::new();
     let mut global_import_types = Vec::new();
     for import in &module.imports {
-        use crate::ast::*;
+        use self::ast::*;
         match &import.desc {
             ImportDesc::Func(idx) => func_import_types.push(module.types[*idx as usize].clone()),
             ImportDesc::Table(type_) => table_import_types.push(type_.clone()),
@@ -135,8 +135,8 @@ pub fn module_exports<'a>(
     }
 
     module.exports.iter().map(move |export| {
-        use crate::ast::*;
-        use crate::types::*;
+        use self::ast::*;
+        use self::types::*;
         let export_type = match export.desc {
             ExportDesc::Func(idx) => {
                 let len = func_import_types.len();

@@ -1,4 +1,4 @@
-use crate::watt::{module_exports, module_imports, Module};
+use crate::runtime::{module_exports, module_imports, Module};
 
 pub fn print_module(module: &Module) {
     let mut imports: Vec<_> = module_imports(module).collect();
