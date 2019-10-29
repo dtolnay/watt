@@ -1,5 +1,4 @@
 use crate::data::Data;
-use crate::runtime::{Interpreter, Value};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::char;
 use std::cmp::Ordering;
@@ -21,250 +20,181 @@ const ORDERING_LESS: u32 = 0;
 const ORDERING_EQUAL: u32 = 1;
 const ORDERING_GREATER: u32 = 2;
 
-// args: []
-// result: [Int(I32)]
-pub fn token_stream_new(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_new() -> u32 {
+    Data::with(|d| d.tokenstream.push(TokenStream::new()))
+}
+
+pub fn token_stream_is_empty(stream: u32) -> u32 {
     Data::with(|d| {
-        let stream = d.tokenstream.push(TokenStream::new());
-        interp.push(Value::I32(stream));
-        None
+        let stream = &d.tokenstream[stream];
+        stream.is_empty() as u32
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_is_empty(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_from_str(string: u32) -> u32 {
     Data::with(|d| {
-        let stream = &d.tokenstream[pop(interp)];
-        let is_empty = stream.is_empty();
-        interp.push(Value::I32(is_empty as u32));
-        None
-    })
-}
-
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_from_str(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let string = &d.string[pop(interp)];
+        let string = &d.string[string];
         let result = TokenStream::from_str(string);
-        interp.push(Value::I32(match result {
+        match result {
             Ok(stream) => d.tokenstream.push(stream),
             Err(_error) => SENTINEL,
-        }));
-        None
+        }
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_into_iter(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_into_iter(stream: u32) -> u32 {
     Data::with(|d| {
-        let stream = &d.tokenstream[pop(interp)];
+        let stream = &d.tokenstream[stream];
         let iter = stream.clone().into_iter();
-        interp.push(Value::I32(d.intoiter.push(iter)));
-        None
+        d.intoiter.push(iter)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_iter_next(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_iter_next(iter: u32) -> u32 {
     Data::with(|d| {
-        let iter = &mut d.intoiter[pop(interp)];
-        interp.push(Value::I32(match iter.next() {
+        let iter = &mut d.intoiter[iter];
+        match iter.next() {
             Some(token) => d.tokentree.push(token),
             None => SENTINEL,
-        }));
-        None
+        }
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_from_group(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_from_group(group: u32) -> u32 {
     Data::with(|d| {
-        let group = &d.group[pop(interp)];
+        let group = &d.group[group];
         let tree = TokenTree::Group(group.clone());
-        interp.push(Value::I32(d.tokenstream.push(TokenStream::from(tree))));
-        None
+        d.tokenstream.push(TokenStream::from(tree))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_from_ident(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_from_ident(ident: u32) -> u32 {
     Data::with(|d| {
-        let ident = &d.ident[pop(interp)];
+        let ident = &d.ident[ident];
         let tree = TokenTree::Ident(ident.clone());
-        interp.push(Value::I32(d.tokenstream.push(TokenStream::from(tree))));
-        None
+        d.tokenstream.push(TokenStream::from(tree))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_from_punct(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_from_punct(punct: u32) -> u32 {
     Data::with(|d| {
-        let punct = &d.punct[pop(interp)];
+        let punct = &d.punct[punct];
         let tree = TokenTree::Punct(punct.clone());
-        interp.push(Value::I32(d.tokenstream.push(TokenStream::from(tree))));
-        None
+        d.tokenstream.push(TokenStream::from(tree))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_from_literal(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_from_literal(literal: u32) -> u32 {
     Data::with(|d| {
-        let literal = &d.literal[pop(interp)];
+        let literal = &d.literal[literal];
         let tree = TokenTree::Literal(literal.clone());
-        interp.push(Value::I32(d.tokenstream.push(TokenStream::from(tree))));
-        None
+        d.tokenstream.push(TokenStream::from(tree))
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn token_stream_push_group(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_push_group(stream: u32, group: u32) {
     Data::with(|d| {
-        let group = &d.group[pop(interp)];
-        let stream = &mut d.tokenstream[pop(interp)];
+        let group = &d.group[group];
+        let stream = &mut d.tokenstream[stream];
         stream.extend(once(TokenTree::Group(group.clone())));
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn token_stream_push_ident(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_push_ident(stream: u32, ident: u32) {
     Data::with(|d| {
-        let ident = &d.ident[pop(interp)];
-        let stream = &mut d.tokenstream[pop(interp)];
+        let ident = &d.ident[ident];
+        let stream = &mut d.tokenstream[stream];
         stream.extend(once(TokenTree::Ident(ident.clone())));
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn token_stream_push_punct(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_push_punct(stream: u32, punct: u32) {
     Data::with(|d| {
-        let punct = &d.punct[pop(interp)];
-        let stream = &mut d.tokenstream[pop(interp)];
+        let punct = &d.punct[punct];
+        let stream = &mut d.tokenstream[stream];
         stream.extend(once(TokenTree::Punct(punct.clone())));
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn token_stream_push_literal(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_push_literal(stream: u32, literal: u32) {
     Data::with(|d| {
-        let literal = &d.literal[pop(interp)];
-        let stream = &mut d.tokenstream[pop(interp)];
+        let literal = &d.literal[literal];
+        let stream = &mut d.tokenstream[stream];
         stream.extend(once(TokenTree::Literal(literal.clone())));
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn token_stream_extend(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_extend(stream: u32, next: u32) {
     Data::with(|d| {
-        let next = d.tokenstream[pop(interp)].clone();
-        let stream = &mut d.tokenstream[pop(interp)];
+        let next = d.tokenstream[next].clone();
+        let stream = &mut d.tokenstream[stream];
         stream.extend(next);
-        None
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_tree_kind(interp: &mut Interpreter) -> Option<String> {
+pub fn token_tree_kind(token: u32) -> u32 {
     Data::with(|d| {
-        let token = &d.tokentree[pop(interp)];
-        interp.push(Value::I32(match token {
+        let token = &d.tokentree[token];
+        match token {
             TokenTree::Group(_) => TOKEN_GROUP,
             TokenTree::Ident(_) => TOKEN_IDENT,
             TokenTree::Punct(_) => TOKEN_PUNCT,
             TokenTree::Literal(_) => TOKEN_LITERAL,
-        }));
-        None
+        }
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_tree_unwrap_group(interp: &mut Interpreter) -> Option<String> {
+pub fn token_tree_unwrap_group(token: u32) -> u32 {
     Data::with(|d| {
-        let token = &d.tokentree[pop(interp)];
+        let token = &d.tokentree[token];
         let group = match token {
             TokenTree::Group(group) => group,
             _ => unreachable!(),
         };
-        interp.push(Value::I32(d.group.push(group.clone())));
-        None
+        d.group.push(group.clone())
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_tree_unwrap_ident(interp: &mut Interpreter) -> Option<String> {
+pub fn token_tree_unwrap_ident(token: u32) -> u32 {
     Data::with(|d| {
-        let token = &d.tokentree[pop(interp)];
+        let token = &d.tokentree[token];
         let ident = match token {
             TokenTree::Ident(ident) => ident,
             _ => unreachable!(),
         };
-        interp.push(Value::I32(d.ident.push(ident.clone())));
-        None
+        d.ident.push(ident.clone())
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_tree_unwrap_punct(interp: &mut Interpreter) -> Option<String> {
+pub fn token_tree_unwrap_punct(token: u32) -> u32 {
     Data::with(|d| {
-        let token = &d.tokentree[pop(interp)];
+        let token = &d.tokentree[token];
         let punct = match token {
             TokenTree::Punct(punct) => punct,
             _ => unreachable!(),
         };
-        interp.push(Value::I32(d.punct.push(punct.clone())));
-        None
+        d.punct.push(punct.clone())
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_tree_unwrap_literal(interp: &mut Interpreter) -> Option<String> {
+pub fn token_tree_unwrap_literal(token: u32) -> u32 {
     Data::with(|d| {
-        let token = &d.tokentree[pop(interp)];
+        let token = &d.tokentree[token];
         let literal = match token {
             TokenTree::Literal(literal) => literal,
             _ => unreachable!(),
         };
-        interp.push(Value::I32(d.literal.push(literal.clone())));
-        None
+        d.literal.push(literal.clone())
     })
 }
 
-// args: []
-// result: [Int(I32)]
-pub fn span_call_site(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        interp.push(Value::I32(d.span.push(Span::call_site())));
-        None
-    })
+pub fn span_call_site() -> u32 {
+    Data::with(|d| d.span.push(Span::call_site()))
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn group_new(interp: &mut Interpreter) -> Option<String> {
+pub fn group_new(delimiter: u32, stream: u32) -> u32 {
     Data::with(|d| {
-        let stream = &d.tokenstream[pop(interp)];
-        let delimiter = pop(interp);
+        let stream = &d.tokenstream[stream];
         let delimiter = if delimiter == DELIMITER_PARENTHESIS {
             Delimiter::Parenthesis
         } else if delimiter == DELIMITER_BRACE {
@@ -277,63 +207,48 @@ pub fn group_new(interp: &mut Interpreter) -> Option<String> {
             unreachable!()
         };
         let group = Group::new(delimiter, stream.clone());
-        interp.push(Value::I32(d.group.push(group)));
-        None
+        d.group.push(group)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_delimiter(interp: &mut Interpreter) -> Option<String> {
+pub fn group_delimiter(group: u32) -> u32 {
     Data::with(|d| {
-        let group = &d.group[pop(interp)];
-        interp.push(Value::I32(match group.delimiter() {
+        let group = &d.group[group];
+        match group.delimiter() {
             Delimiter::Parenthesis => DELIMITER_PARENTHESIS,
             Delimiter::Brace => DELIMITER_BRACE,
             Delimiter::Bracket => DELIMITER_BRACKET,
             Delimiter::None => DELIMITER_NONE,
-        }));
-        None
+        }
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_stream(interp: &mut Interpreter) -> Option<String> {
+pub fn group_stream(group: u32) -> u32 {
     Data::with(|d| {
-        let group = &d.group[pop(interp)];
-        interp.push(Value::I32(d.tokenstream.push(group.stream())));
-        None
+        let group = &d.group[group];
+        d.tokenstream.push(group.stream())
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_span(interp: &mut Interpreter) -> Option<String> {
+pub fn group_span(group: u32) -> u32 {
     Data::with(|d| {
-        let group = &d.group[pop(interp)];
-        interp.push(Value::I32(d.span.push(group.span())));
-        None
+        let group = &d.group[group];
+        d.span.push(group.span())
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn group_set_span(interp: &mut Interpreter) -> Option<String> {
+pub fn group_set_span(group: u32, span: u32) {
     Data::with(|d| {
-        let span = d.span[pop(interp)];
-        let group = &mut d.group[pop(interp)];
+        let span = d.span[span];
+        let group = &mut d.group[group];
         group.set_span(span);
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn punct_new(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_new(op: u32, spacing: u32) -> u32 {
     Data::with(|d| {
-        let spacing = pop(interp);
-        let op = pop(interp);
+        let spacing = spacing;
+        let op = op;
         let spacing = if spacing == SPACING_ALONE {
             Spacing::Alone
         } else if spacing == SPACING_JOINT {
@@ -342,768 +257,487 @@ pub fn punct_new(interp: &mut Interpreter) -> Option<String> {
             unreachable!()
         };
         let op = char::from_u32(op).unwrap();
-        interp.push(Value::I32(d.punct.push(Punct::new(op, spacing))));
-        None
+        d.punct.push(Punct::new(op, spacing))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_as_char(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_as_char(punct: u32) -> u32 {
     Data::with(|d| {
-        let punct = &d.punct[pop(interp)];
-        interp.push(Value::I32(punct.as_char() as u32));
-        None
+        let punct = &d.punct[punct];
+        punct.as_char() as u32
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_spacing(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_spacing(punct: u32) -> u32 {
     Data::with(|d| {
-        let punct = &d.punct[pop(interp)];
-        interp.push(Value::I32(match punct.spacing() {
+        let punct = &d.punct[punct];
+        match punct.spacing() {
             Spacing::Alone => SPACING_ALONE,
             Spacing::Joint => SPACING_JOINT,
-        }));
-        None
+        }
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_span(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_span(punct: u32) -> u32 {
     Data::with(|d| {
-        let punct = &d.punct[pop(interp)];
-        interp.push(Value::I32(d.span.push(punct.span())));
-        None
+        let punct = &d.punct[punct];
+        d.span.push(punct.span())
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn punct_set_span(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_set_span(punct: u32, span: u32) {
     Data::with(|d| {
-        let span = d.span[pop(interp)];
-        let punct = &mut d.punct[pop(interp)];
+        let span = d.span[span];
+        let punct = &mut d.punct[punct];
         punct.set_span(span);
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn ident_new(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_new(string: u32, span: u32) -> u32 {
     Data::with(|d| {
-        let span = d.span[pop(interp)];
-        let string = &d.string[pop(interp)];
-        interp.push(Value::I32(d.ident.push(Ident::new(string, span))));
-        None
+        let span = d.span[span];
+        let string = &d.string[string];
+        d.ident.push(Ident::new(string, span))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn ident_span(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_span(ident: u32) -> u32 {
     Data::with(|d| {
-        let ident = &d.ident[pop(interp)];
-        interp.push(Value::I32(d.span.push(ident.span())));
-        None
+        let ident = &d.ident[ident];
+        d.span.push(ident.span())
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn ident_set_span(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_set_span(ident: u32, span: u32) {
     Data::with(|d| {
-        let span = d.span[pop(interp)];
-        let ident = &mut d.ident[pop(interp)];
+        let span = d.span[span];
+        let ident = &mut d.ident[ident];
         ident.set_span(span);
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn ident_eq(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_eq(ident: u32, other: u32) -> u32 {
     Data::with(|d| {
-        let other = &d.ident[pop(interp)];
-        let ident = &d.ident[pop(interp)];
+        let other = &d.ident[other];
+        let ident = &d.ident[ident];
         let eq = ident.to_string() == other.to_string();
-        interp.push(Value::I32(eq as u32));
-        None
+        eq as u32
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn ident_eq_str(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_eq_str(ident: u32, other: u32) -> u32 {
     Data::with(|d| {
-        let other = &d.string[pop(interp)];
-        let ident = &d.ident[pop(interp)];
+        let other = &d.string[other];
+        let ident = &d.ident[ident];
         let eq = ident.to_string() == *other;
-        interp.push(Value::I32(eq as u32));
-        None
+        eq as u32
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn ident_cmp(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_cmp(ident: u32, other: u32) -> u32 {
     Data::with(|d| {
-        let other = &d.ident[pop(interp)];
-        let ident = &d.ident[pop(interp)];
+        let other = &d.ident[other];
+        let ident = &d.ident[ident];
         let cmp = match ident.to_string().cmp(&other.to_string()) {
             Ordering::Less => ORDERING_LESS,
             Ordering::Equal => ORDERING_EQUAL,
             Ordering::Greater => ORDERING_GREATER,
         };
-        interp.push(Value::I32(cmp));
-        None
+        cmp
+    })
+}
+
+pub fn literal_u8_suffixed(n: u32) -> u32 {
+    Data::with(|d| {
+        let n = n as u8;
+        d.literal.push(Literal::u8_suffixed(n))
+    })
+}
+
+pub fn literal_u16_suffixed(n: u32) -> u32 {
+    Data::with(|d| {
+        let n = n as u16;
+        d.literal.push(Literal::u16_suffixed(n))
     })
 }
 
 // args: [Int(I32)]
 // result: [Int(I32)]
-pub fn literal_u8_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop(interp) as u8;
-        interp.push(Value::I32(d.literal.push(Literal::u8_suffixed(n))));
-        None
-    })
+pub fn literal_u32_suffixed(n: u32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::u32_suffixed(n)))
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_u16_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop(interp) as u16;
-        interp.push(Value::I32(d.literal.push(Literal::u16_suffixed(n))));
-        None
-    })
+pub fn literal_u64_suffixed(n: u64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::u64_suffixed(n)))
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_u32_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_u128_suffixed(lo: u64, hi: u64) -> u32 {
     Data::with(|d| {
-        let n = pop(interp);
-        interp.push(Value::I32(d.literal.push(Literal::u32_suffixed(n))));
-        None
-    })
-}
-
-// args: [Int(I64)]
-// result: [Int(I32)]
-pub fn literal_u64_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop64(interp);
-        interp.push(Value::I32(d.literal.push(Literal::u64_suffixed(n))));
-        None
-    })
-}
-
-// args: [Int(I64), Int(I64)]
-// result: [Int(I32)]
-pub fn literal_u128_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let hi = pop64(interp);
-        let lo = pop64(interp);
         let n = ((hi as u128) << 64) + lo as u128;
-        interp.push(Value::I32(d.literal.push(Literal::u128_suffixed(n))));
-        None
+        d.literal.push(Literal::u128_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_usize_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_usize_suffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as usize;
-        interp.push(Value::I32(d.literal.push(Literal::usize_suffixed(n))));
-        None
+        let n = n as usize;
+        d.literal.push(Literal::usize_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i8_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i8_suffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as i8;
-        interp.push(Value::I32(d.literal.push(Literal::i8_suffixed(n))));
-        None
+        let n = n as i8;
+        d.literal.push(Literal::i8_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i16_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i16_suffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as i16;
-        interp.push(Value::I32(d.literal.push(Literal::i16_suffixed(n))));
-        None
+        let n = n as i16;
+        d.literal.push(Literal::i16_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i32_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop(interp) as i32;
-        interp.push(Value::I32(d.literal.push(Literal::i32_suffixed(n))));
-        None
-    })
+pub fn literal_i32_suffixed(n: i32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::i32_suffixed(n)))
 }
 
-// args: [Int(I64)]
-// result: [Int(I32)]
-pub fn literal_i64_suffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop64(interp) as i64;
-        interp.push(Value::I32(d.literal.push(Literal::i64_suffixed(n))));
-        None
-    })
+pub fn literal_i64_suffixed(n: i64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::i64_suffixed(n)))
 }
 
-// args: [Int(I64), Int(I64)]
-// result: [Int(I32)]
-pub fn literal_i128_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i128_suffixed(lo: u64, hi: u64) -> u32 {
     Data::with(|d| {
-        let hi = pop64(interp);
-        let lo = pop64(interp);
         let n = (((hi as u128) << 64) + lo as u128) as i128;
-        interp.push(Value::I32(d.literal.push(Literal::i128_suffixed(n))));
-        None
+        d.literal.push(Literal::i128_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_isize_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_isize_suffixed(n: i32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as isize;
-        interp.push(Value::I32(d.literal.push(Literal::isize_suffixed(n))));
-        None
+        let n = n as isize;
+        d.literal.push(Literal::isize_suffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_u8_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_u8_unsuffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as u8;
-        interp.push(Value::I32(d.literal.push(Literal::u8_unsuffixed(n))));
-        None
+        let n = n as u8;
+        d.literal.push(Literal::u8_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_u16_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_u16_unsuffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as u16;
-        interp.push(Value::I32(d.literal.push(Literal::u16_unsuffixed(n))));
-        None
+        let n = n as u16;
+        d.literal.push(Literal::u16_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_u32_unsuffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop(interp);
-        interp.push(Value::I32(d.literal.push(Literal::u32_unsuffixed(n))));
-        None
-    })
+pub fn literal_u32_unsuffixed(n: u32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::u32_unsuffixed(n)))
 }
 
-// args: [Int(I64)]
-// result: [Int(I32)]
-pub fn literal_u64_unsuffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop64(interp);
-        interp.push(Value::I32(d.literal.push(Literal::u64_unsuffixed(n))));
-        None
-    })
+pub fn literal_u64_unsuffixed(n: u64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::u64_unsuffixed(n)))
 }
 
-// args: [Int(I64), Int(I64)]
-// result: [Int(I32)]
-pub fn literal_u128_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_u128_unsuffixed(lo: u64, hi: u64) -> u32 {
     Data::with(|d| {
-        let hi = pop64(interp);
-        let lo = pop64(interp);
         let n = ((hi as u128) << 64) + lo as u128;
-        interp.push(Value::I32(d.literal.push(Literal::u128_unsuffixed(n))));
-        None
+        d.literal.push(Literal::u128_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_usize_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_usize_unsuffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as usize;
-        interp.push(Value::I32(d.literal.push(Literal::usize_unsuffixed(n))));
-        None
+        let n = n as usize;
+        d.literal.push(Literal::usize_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i8_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i8_unsuffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as i8;
-        interp.push(Value::I32(d.literal.push(Literal::i8_unsuffixed(n))));
-        None
+        let n = n as i8;
+        d.literal.push(Literal::i8_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i16_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i16_unsuffixed(n: u32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as i16;
-        interp.push(Value::I32(d.literal.push(Literal::i16_unsuffixed(n))));
-        None
+        let n = n as i16;
+        d.literal.push(Literal::i16_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_i32_unsuffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop(interp) as i32;
-        interp.push(Value::I32(d.literal.push(Literal::i32_unsuffixed(n))));
-        None
-    })
+pub fn literal_i32_unsuffixed(n: i32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::i32_unsuffixed(n)))
 }
 
-// args: [Int(I64)]
-// result: [Int(I32)]
-pub fn literal_i64_unsuffixed(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let n = pop64(interp) as i64;
-        interp.push(Value::I32(d.literal.push(Literal::i64_unsuffixed(n))));
-        None
-    })
+pub fn literal_i64_unsuffixed(n: i64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::i64_unsuffixed(n)))
 }
 
-// args: [Int(I64), Int(I64)]
-// result: [Int(I32)]
-pub fn literal_i128_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_i128_unsuffixed(lo: u64, hi: u64) -> u32 {
     Data::with(|d| {
-        let hi = pop64(interp);
-        let lo = pop64(interp);
         let n = (((hi as u128) << 64) + lo as u128) as i128;
-        interp.push(Value::I32(d.literal.push(Literal::i128_unsuffixed(n))));
-        None
+        d.literal.push(Literal::i128_unsuffixed(n))
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_isize_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_isize_unsuffixed(n: i32) -> u32 {
     Data::with(|d| {
-        let n = pop(interp) as isize;
-        interp.push(Value::I32(d.literal.push(Literal::isize_unsuffixed(n))));
-        None
+        let n = n as isize;
+        d.literal.push(Literal::isize_unsuffixed(n))
     })
 }
 
-// args: [Int(F64)]
-// result: [Int(I32)]
-pub fn literal_f64_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_f64_unsuffixed(f: f64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::f64_unsuffixed(f)))
+}
+
+pub fn literal_f64_suffixed(f: f64) -> u32 {
+    Data::with(|d| d.literal.push(Literal::f64_suffixed(f)))
+}
+
+pub fn literal_f32_unsuffixed(f: f32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::f32_unsuffixed(f)))
+}
+
+pub fn literal_f32_suffixed(f: f32) -> u32 {
+    Data::with(|d| d.literal.push(Literal::f32_suffixed(f)))
+}
+
+pub fn literal_string(string: u32) -> u32 {
     Data::with(|d| {
-        let f = popf64(interp);
-        interp.push(Value::I32(d.literal.push(Literal::f64_unsuffixed(f))));
-        None
+        let string = &d.string[string];
+        d.literal.push(Literal::string(string))
     })
 }
 
-// args: [Int(F64)]
-// result: [Int(I32)]
-pub fn literal_f64_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_character(ch: u32) -> u32 {
     Data::with(|d| {
-        let f = popf64(interp);
-        interp.push(Value::I32(d.literal.push(Literal::f64_suffixed(f))));
-        None
+        let ch = char::from_u32(ch).unwrap();
+        d.literal.push(Literal::character(ch))
     })
 }
 
-// args: [Int(F32)]
-// result: [Int(I32)]
-pub fn literal_f32_unsuffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_byte_string(bytes: u32) -> u32 {
     Data::with(|d| {
-        let f = popf(interp);
-        interp.push(Value::I32(d.literal.push(Literal::f32_unsuffixed(f))));
-        None
+        let bytes = &d.bytes[bytes];
+        d.literal.push(Literal::byte_string(bytes))
     })
 }
 
-// args: [Int(F32)]
-// result: [Int(I32)]
-pub fn literal_f32_suffixed(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_span(literal: u32) -> u32 {
     Data::with(|d| {
-        let f = popf(interp);
-        interp.push(Value::I32(d.literal.push(Literal::f32_suffixed(f))));
-        None
+        let literal = &d.literal[literal];
+        d.span.push(literal.span())
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_string(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_set_span(literal: u32, span: u32) {
     Data::with(|d| {
-        let string = &d.string[pop(interp)];
-        interp.push(Value::I32(d.literal.push(Literal::string(string))));
-        None
-    })
-}
-
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_character(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let ch = char::from_u32(pop(interp)).unwrap();
-        interp.push(Value::I32(d.literal.push(Literal::character(ch))));
-        None
-    })
-}
-
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_byte_string(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let bytes = &d.bytes[pop(interp)];
-        interp.push(Value::I32(d.literal.push(Literal::byte_string(bytes))));
-        None
-    })
-}
-
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_span(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let literal = &d.literal[pop(interp)];
-        interp.push(Value::I32(d.span.push(literal.span())));
-        None
-    })
-}
-
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn literal_set_span(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| {
-        let span = d.span[pop(interp)];
-        let literal = &mut d.literal[pop(interp)];
+        let span = d.span[span];
+        let literal = &mut d.literal[literal];
         literal.set_span(span);
-        None
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_clone(stream: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.tokenstream[pop(interp)].clone();
-        interp.push(Value::I32(d.tokenstream.push(clone)));
-        None
+        let clone = d.tokenstream[stream].clone();
+        d.tokenstream.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn group_clone(group: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.group[pop(interp)].clone();
-        interp.push(Value::I32(d.group.push(clone)));
-        None
+        let clone = d.group[group].clone();
+        d.group.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn ident_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_clone(ident: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.ident[pop(interp)].clone();
-        interp.push(Value::I32(d.ident.push(clone)));
-        None
+        let clone = d.ident[ident].clone();
+        d.ident.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_clone(punct: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.punct[pop(interp)].clone();
-        interp.push(Value::I32(d.punct.push(clone)));
-        None
+        let clone = d.punct[punct].clone();
+        d.punct.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_clone(literal: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.literal[pop(interp)].clone();
-        interp.push(Value::I32(d.literal.push(clone)));
-        None
+        let clone = d.literal[literal].clone();
+        d.literal.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_iter_clone(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_iter_clone(iter: u32) -> u32 {
     Data::with(|d| {
-        let clone = d.intoiter[pop(interp)].clone();
-        interp.push(Value::I32(d.intoiter.push(clone)));
-        None
+        let clone = d.intoiter[iter].clone();
+        d.intoiter.push(clone)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_to_string(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_to_string(stream: u32) -> u32 {
     Data::with(|d| {
-        let string = d.tokenstream[pop(interp)].to_string();
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        let string = d.tokenstream[stream].to_string();
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_to_string(interp: &mut Interpreter) -> Option<String> {
+pub fn group_to_string(group: u32) -> u32 {
     Data::with(|d| {
-        let string = d.group[pop(interp)].to_string();
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        let string = d.group[group].to_string();
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn ident_to_string(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_to_string(ident: u32) -> u32 {
     Data::with(|d| {
-        let string = d.ident[pop(interp)].to_string();
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        let string = d.ident[ident].to_string();
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_to_string(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_to_string(punct: u32) -> u32 {
     Data::with(|d| {
-        let string = d.punct[pop(interp)].to_string();
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        let string = d.punct[punct].to_string();
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_to_string(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_to_string(literal: u32) -> u32 {
     Data::with(|d| {
-        let string = d.literal[pop(interp)].to_string();
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        let string = d.literal[literal].to_string();
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn token_stream_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn token_stream_debug(stream: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.tokenstream[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.tokenstream[stream]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn group_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn group_debug(group: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.group[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.group[group]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn ident_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn ident_debug(ident: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.ident[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.ident[ident]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn punct_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn punct_debug(punct: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.punct[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.punct[punct]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn literal_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn literal_debug(literal: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.literal[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.literal[literal]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn span_debug(interp: &mut Interpreter) -> Option<String> {
+pub fn span_debug(span: u32) -> u32 {
     Data::with(|d| {
-        let debug = format!("{:?}", d.span[pop(interp)]);
-        interp.push(Value::I32(d.string.push(debug)));
-        None
+        let debug = format!("{:?}", d.span[span]);
+        d.string.push(debug)
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_new(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     Data::with(|d| {
-        let len = pop(interp) as usize;
-        let ptr = pop(interp) as usize;
-        let bytes = interp.get_memory_mut()[ptr..ptr + len].to_owned();
+        let len = len as usize;
+        let ptr = ptr as usize;
+        let bytes = unsafe { (*memory)[ptr..ptr + len].to_owned() };
         let string = String::from_utf8(bytes).expect("non-utf8");
-        interp.push(Value::I32(d.string.push(string)));
-        None
+        d.string.push(string)
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_len(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_len(string: u32) -> u32 {
     Data::with(|d| {
-        let string = &d.string[pop(interp)];
-        interp.push(Value::I32(string.len() as u32));
-        None
+        let string = &d.string[string];
+        string.len() as u32
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn watt_string_read(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_read(memory: *mut [u8], string: u32, ptr: u32) {
     Data::with(|d| {
-        let ptr = pop(interp) as usize;
-        let string = &d.string[pop(interp)];
-        interp.get_memory_mut()[ptr..ptr + string.len()].copy_from_slice(string.as_bytes());
-        None
+        let ptr = ptr as usize;
+        let string = &d.string[string];
+        unsafe {
+            (*memory)[ptr..ptr + string.len()].copy_from_slice(string.as_bytes());
+        }
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn watt_bytes_new(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_bytes_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     Data::with(|d| {
-        let len = pop(interp) as usize;
-        let ptr = pop(interp) as usize;
-        let bytes = interp.get_memory_mut()[ptr..ptr + len].to_owned();
-        interp.push(Value::I32(d.bytes.push(bytes)));
-        None
+        let len = len as usize;
+        let ptr = ptr as usize;
+        let bytes = unsafe { (*memory)[ptr..ptr + len].to_owned() };
+        d.bytes.push(bytes)
     })
 }
 
-// args: [Int(I32)]
-// result: []
-pub fn watt_print_panic(interp: &mut Interpreter) -> Option<String> {
-    Data::with(|d| panic!("{}", d.string[pop(interp)]))
+pub fn watt_print_panic(string: u32) {
+    Data::with(|d| panic!("{}", d.string[string]))
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_with_capacity(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_with_capacity(cap: u32) -> u32 {
     Data::with(|d| {
-        let cap = pop(interp) as usize;
-        let string = d.string.push(String::with_capacity(cap));
-        interp.push(Value::I32(string));
-        None
+        let cap = cap as usize;
+        d.string.push(String::with_capacity(cap))
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn watt_string_push_char(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_push_char(string: u32, ch: u32) {
     Data::with(|d| {
-        let ch = pop(interp);
-        let string = &mut d.string[pop(interp)];
+        let ch = ch;
+        let string = &mut d.string[string];
         string.push(char::from_u32(ch).unwrap());
-        None
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: [Int(I32)]
-pub fn watt_string_char_at(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_string_char_at(string: u32, pos: u32) -> u32 {
     Data::with(|d| {
-        let pos = pop(interp) as usize;
-        let string = &d.string[pop(interp)];
-        let ch = string[pos..].chars().next().unwrap() as u32;
-        interp.push(Value::I32(ch));
-        None
+        let pos = pos as usize;
+        let string = &d.string[string];
+        string[pos..].chars().next().unwrap() as u32
     })
 }
 
-// args: [Int(I32)]
-// result: [Int(I32)]
-pub fn watt_bytes_with_capacity(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_bytes_with_capacity(cap: u32) -> u32 {
     Data::with(|d| {
-        let cap = pop(interp) as usize;
-        let string = d.bytes.push(Vec::with_capacity(cap));
-        interp.push(Value::I32(string));
-        None
+        let cap = cap as usize;
+        d.bytes.push(Vec::with_capacity(cap))
     })
 }
 
-// args: [Int(I32), Int(I32)]
-// result: []
-pub fn watt_bytes_push(interp: &mut Interpreter) -> Option<String> {
+pub fn watt_bytes_push(bytes: u32, b: u32) {
     Data::with(|d| {
-        let b = pop(interp) as u8;
-        let bytes = &mut d.bytes[pop(interp)];
+        let b = b as u8;
+        let bytes = &mut d.bytes[bytes];
         bytes.push(b);
-        None
     })
-}
-
-fn pop(interp: &mut Interpreter) -> u32 {
-    match interp.pop() {
-        Some(Value::I32(int)) => int,
-        _ => unreachable!("unexpected Value type on stack"),
-    }
-}
-
-fn pop64(interp: &mut Interpreter) -> u64 {
-    match interp.pop() {
-        Some(Value::I64(int)) => int,
-        _ => unreachable!("unexpected Value type on stack"),
-    }
-}
-
-fn popf(interp: &mut Interpreter) -> f32 {
-    match interp.pop() {
-        Some(Value::F32(float)) => float,
-        _ => unreachable!("unexpected Value type on stack"),
-    }
-}
-
-fn popf64(interp: &mut Interpreter) -> f64 {
-    match interp.pop() {
-        Some(Value::F64(float)) => float,
-        _ => unreachable!("unexpected Value type on stack"),
-    }
 }
