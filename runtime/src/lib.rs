@@ -10,6 +10,7 @@
 pub mod interpreter;
 pub mod ast;
 mod binary;
+pub mod func;
 pub mod ops;
 pub mod runtime;
 pub mod types;
@@ -17,6 +18,7 @@ mod valid;
 pub mod values;
 
 pub use self::ast::Module;
+pub use self::func::{WasmFunc0, WasmFunc1, WasmFunc2, WasmFunc3};
 pub use self::interpreter::Interpreter;
 pub use self::runtime::{ExternVal, HostFunc};
 pub use self::types::Extern;

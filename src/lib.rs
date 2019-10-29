@@ -180,7 +180,11 @@
 
 extern crate proc_macro;
 
+#[cfg(not(jit))]
 #[path = "../runtime/src/lib.rs"]
+mod runtime;
+#[cfg(jit)]
+#[path = "../jit/src/lib.rs"]
 mod runtime;
 
 mod data;
