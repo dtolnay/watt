@@ -18,7 +18,7 @@ pub fn extern_vals(module: &Module, store: &mut Store) -> crate::runtime::Instan
 
     fn mk_host_func(import: &ImportType, store: &Store) -> HostFunc {
         // TODO: assert `import` is a function import
-        assert_eq!(import.module(), "env");
+        // assert_eq!(import.module(), "env");
         host_func(import.name(), store)
     }
 }
@@ -50,6 +50,9 @@ fn host_func(name: &str, store: &Store) -> HostFunc {
     use crate::runtime::{WasmFunc0, WasmFunc1, WasmFunc2, WasmFunc3};
 
     match name {
+        "token_stream_serialize" => sym::token_stream_serialize.into_host_func(store),
+        "token_stream_deserialize" => sym::token_stream_deserialize.into_host_func(store),
+        "token_stream_parse" => sym::token_stream_parse.into_host_func(store),
         "token_stream_new" => sym::token_stream_new.into_host_func(store),
         "token_stream_is_empty" => sym::token_stream_is_empty.into_host_func(store),
         "token_stream_from_str" => sym::token_stream_from_str.into_host_func(store),
@@ -149,6 +152,8 @@ fn host_func(name: &str, store: &Store) -> HostFunc {
         "watt_string_len" => sym::watt_string_len.into_host_func(store),
         "watt_string_read" => sym::watt_string_read.into_host_func(store),
         "watt_bytes_new" => sym::watt_bytes_new.into_host_func(store),
+        "watt_bytes_len" => sym::watt_bytes_len.into_host_func(store),
+        "watt_bytes_read" => sym::watt_bytes_read.into_host_func(store),
         "watt_print_panic" => sym::watt_print_panic.into_host_func(store),
 
         // to be removed in 0.2

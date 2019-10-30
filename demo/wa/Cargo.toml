@@ -9,4 +9,4 @@ publish = false
 proc-macro = true
 
 [dependencies]
-watt = { path = "../.." }
+watt = "0.1"

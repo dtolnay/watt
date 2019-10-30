@@ -3,7 +3,7 @@ use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenSt
 use std::char;
 use std::cmp::Ordering;
 use std::iter::once;
-use std::str::FromStr;
+use std::str::{self, FromStr};
 
 const SENTINEL: u32 = u32::max_value();
 const TOKEN_GROUP: u32 = 0;
@@ -739,5 +739,54 @@ pub fn watt_bytes_push(bytes: u32, b: u32) {
         let b = b as u8;
         let bytes = &mut d.bytes[bytes];
         bytes.push(b);
+    })
+}
+
+pub fn watt_bytes_len(bytes: u32) -> u32 {
+    Data::with(|d| d.bytes[bytes].len() as u32)
+}
+
+pub fn watt_bytes_read(memory: *mut [u8], bytes: u32, ptr: u32) {
+    Data::with(|d| {
+        let ptr = ptr as usize;
+        let bytes = &d.bytes[bytes];
+        unsafe {
+            (*memory)[ptr..ptr + bytes.len()].copy_from_slice(bytes);
+        }
+    })
+}
+
+pub fn token_stream_serialize(stream: u32) -> u32 {
+    Data::with(|d| {
+        let stream = d.tokenstream[stream].clone();
+        let bytes = crate::encode::encode(stream, d);
+        d.bytes.push(bytes)
+    })
+}
+
+pub fn token_stream_deserialize(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
+    Data::with(|d| {
+        let ptr = ptr as usize;
+        let len = len as usize;
+        let memory = unsafe { &(*memory)[ptr..ptr + len] };
+        let stream = crate::decode::decode(memory, d);
+        d.tokenstream.push(stream)
+    })
+}
+
+pub fn token_stream_parse(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
+    Data::with(|d| {
+        let ptr = ptr as usize;
+        let len = len as usize;
+        let memory = unsafe { &(*memory)[ptr..ptr + len] };
+        let string = match str::from_utf8(memory) {
+            Ok(s) => s,
+            Err(_) => return u32::max_value(),
+        };
+        let stream = match string.parse() {
+            Ok(s) => s,
+            Err(_) => return u32::max_value(),
+        };
+        d.tokenstream.push(stream)
     })
 }
