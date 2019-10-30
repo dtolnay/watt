@@ -1,21 +1,20 @@
-use proc_macro2::*;
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-#[no_mangle]
-pub extern "C" fn demo(input: RawTokenStream) -> RawTokenStream {
-    let input: DeriveInput = match syn::parse2(input.into_token_stream()) {
+#[proc_macro2::proc_macro_derive(Demo)]
+pub fn demo(input: TokenStream) -> TokenStream {
+    let input: DeriveInput = match syn::parse2(input) {
         Ok(input) => input,
-        Err(err) => return err.to_compile_error().into_raw_token_stream(),
+        Err(err) => return err.to_compile_error(),
     };
 
     let ident = input.ident;
     let message = format!("Hello from WASM! My name is {}.", ident);
 
-    let ret = quote! {
+    quote! {
         impl #ident {
             pub const MESSAGE: &'static str = #message;
         }
-    };
-    ret.into_raw_token_stream()
+    }
 }

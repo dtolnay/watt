@@ -1,13 +1,17 @@
 extern crate proc_macro;
 
+pub use proc_macro2_macros::expand_attribute as proc_macro_attribute;
+pub use proc_macro2_macros::expand_derive as proc_macro_derive;
+pub use proc_macro2_macros::expand_macro as proc_macro;
+
 mod decode;
 mod encode;
 
 #[link(wasm_import_module = "watt-0.2")]
 extern "C" {
-    fn token_stream_serialize(stream: handle::TokenStream) -> handle::Bytes;
-    fn token_stream_deserialize(ptr: *const u8, len: usize) -> handle::TokenStream;
-    fn token_stream_parse(ptr: *const u8, len: usize) -> handle::TokenStream;
+    fn token_stream_serialize(stream: u32) -> handle::Bytes;
+    fn token_stream_deserialize(ptr: *const u8, len: usize) -> u32;
+    fn token_stream_parse(ptr: *const u8, len: usize) -> u32;
     fn literal_to_string(lit: handle::Literal) -> handle::String;
 
     fn watt_string_new(ptr: *const u8, len: usize) -> handle::String;
@@ -19,10 +23,6 @@ extern "C" {
 }
 
 mod handle {
-    #[repr(transparent)]
-    #[derive(Copy, Clone)]
-    pub struct TokenStream(pub u32);
-
     #[repr(transparent)]
     #[derive(Copy, Clone)]
     pub struct String(pub u32);
@@ -46,29 +46,29 @@ use std::panic::{self, PanicInfo};
 use std::str::FromStr;
 use std::sync::Once;
 
-pub fn set_wasm_panic_hook() {
-    static INIT: Once = Once::new();
-    INIT.call_once(|| {
-        panic::set_hook(Box::new(panic_hook));
-    });
-}
+#[doc(hidden)]
+pub mod __internal {
+    use super::*;
 
-fn panic_hook(panic: &PanicInfo) {
-    let string = panic.to_string();
-    unsafe {
-        let s = watt_string_new(string.as_ptr(), string.len());
-        watt_print_panic(s);
+    fn set_wasm_panic_hook() {
+        static INIT: Once = Once::new();
+        INIT.call_once(|| {
+            panic::set_hook(Box::new(panic_hook));
+        });
     }
-}
 
-#[repr(transparent)]
-pub struct RawTokenStream(handle::TokenStream);
+    fn panic_hook(panic: &PanicInfo) {
+        let string = panic.to_string();
+        unsafe {
+            let s = watt_string_new(string.as_ptr(), string.len());
+            watt_print_panic(s);
+        }
+    }
 
-impl RawTokenStream {
-    pub fn into_token_stream(self) -> TokenStream {
+    pub fn raw_to_token_stream(raw: u32) -> TokenStream {
         set_wasm_panic_hook();
         let bytes = unsafe {
-            let handle = token_stream_serialize(self.0);
+            let handle = token_stream_serialize(raw);
             let len = watt_bytes_len(handle);
             let mut ret = Vec::with_capacity(len);
             ret.set_len(len);
@@ -76,6 +76,11 @@ impl RawTokenStream {
             ret
         };
         decode::decode(&bytes)
+    }
+
+    pub fn token_stream_into_raw(stream: TokenStream) -> u32 {
+        let bytes = encode::encode(stream);
+        unsafe { token_stream_deserialize(bytes.as_ptr(), bytes.len()) }
     }
 }
 
@@ -102,11 +107,6 @@ impl TokenStream {
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
-
-    pub fn into_raw_token_stream(self) -> RawTokenStream {
-        let bytes = encode::encode(self);
-        unsafe { RawTokenStream(token_stream_deserialize(bytes.as_ptr(), bytes.len())) }
-    }
 }
 
 impl Default for TokenStream {
@@ -120,10 +120,10 @@ impl FromStr for TokenStream {
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let ret = unsafe { token_stream_parse(input.as_ptr(), input.len()) };
-        if ret.0 == u32::max_value() {
+        if ret == u32::max_value() {
             Err(LexError { _private: () })
         } else {
-            Ok(RawTokenStream(ret).into_token_stream())
+            Ok(__internal::raw_to_token_stream(ret))
         }
     }
 }
