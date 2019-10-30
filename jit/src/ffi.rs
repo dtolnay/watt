@@ -2,6 +2,8 @@
 #![allow(dead_code)]
 
 use std::ffi::c_void;
+use std::mem;
+use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 
 pub type wasm_name_t = wasm_byte_vec_t;
 pub type wasm_valkind_t = u8;
@@ -202,8 +204,88 @@ pub struct wasm_config_t {
     _unused: [u8; 0],
 }
 
-#[link(name = "wasmtime_api")]
-extern "C" {
+fn resolve(ptr: &AtomicUsize, name: &str) -> usize {
+    match ptr.load(SeqCst) {
+        0 => {}
+        n => return n,
+    }
+    let fnptr = dynamically_resolve(name);
+    ptr.store(fnptr, SeqCst);
+    fnptr
+}
+
+#[cfg(unix)]
+fn dynamically_resolve(name: &str) -> usize {
+    extern "C" {
+        fn dlopen(filename: *const u8, flags: i32) -> *mut u8;
+        fn dlsym(handle: *mut u8, sym: *const u8) -> *mut u8;
+    }
+    static HANDLE: AtomicUsize = AtomicUsize::new(0);
+    unsafe {
+        let handle = match HANDLE.load(SeqCst) {
+            0 => {
+                let path = concat!(env!("WATT_JIT"), "\0");
+                let handle = dlopen(path.as_ptr(), 1);
+                assert!(
+                    !handle.is_null(),
+                    "failed to dynamically open: {}",
+                    env!("WATT_JIT")
+                );
+                HANDLE.store(handle as usize, SeqCst);
+                handle
+            }
+            n => n as *mut u8,
+        };
+        let ret = dlsym(handle, name.as_ptr());
+        assert!(!ret.is_null());
+        return ret as usize;
+    }
+}
+
+#[cfg(windows)]
+fn dynamically_resolve(name: &str) -> usize {
+    extern "system" {
+        fn LoadLibraryA(name: *const u8) -> *mut u8;
+        fn GetProcAddress(handle: *mut u8, sym: *const u8) -> *mut u8;
+    }
+    static HANDLE: AtomicUsize = AtomicUsize::new(0);
+    unsafe {
+        let handle = match HANDLE.load(SeqCst) {
+            0 => {
+                let path = concat!(env!("WATT_JIT"), "\0");
+                let handle = LoadLibraryA(path.as_ptr());
+                assert!(
+                    !handle.is_null(),
+                    "failed to dynamically open: {}",
+                    env!("WATT_JIT")
+                );
+                HANDLE.store(handle as usize, SeqCst);
+                handle
+            }
+            n => n as *mut u8,
+        };
+        let ret = GetProcAddress(handle, name.as_ptr());
+        assert!(!ret.is_null());
+        return ret as usize;
+    }
+}
+
+macro_rules! extern_apis {
+    ($(
+        pub fn $name:ident($($arg:ident: $ty:ty),* $(,)?) $(-> $ret:ty)?;
+    )*) => ($(
+        pub unsafe extern "C" fn $name($($arg: $ty),*) $(-> $ret)? {
+            static PTR: AtomicUsize = AtomicUsize::new(0);
+            let _fnptr = resolve(&PTR, concat!(stringify!($name), "\0"));
+            mem::transmute::<
+                usize,
+                unsafe extern "C" fn($($ty),*) $( -> $ret)?
+            >(_fnptr)($($arg),*)
+        }
+    )*);
+}
+
+extern_apis! {
     pub fn wasm_byte_vec_new_empty(out: *mut wasm_byte_vec_t);
     pub fn wasm_byte_vec_new_uninitialized(out: *mut wasm_byte_vec_t, arg1: usize);
     pub fn wasm_byte_vec_new(out: *mut wasm_byte_vec_t, arg1: usize, arg2: *const u8);
