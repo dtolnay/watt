@@ -60,13 +60,13 @@ fn host_func(name: &str, store: &Store) -> HostFunc {
         "token_stream_parse" => sym::token_stream_parse.into_host_func(store),
         "literal_to_string" => sym::literal_to_string.into_host_func(store),
 
-        "watt_string_new" => sym::watt_string_new.into_host_func(store),
-        "watt_string_len" => sym::watt_string_len.into_host_func(store),
-        "watt_string_read" => sym::watt_string_read.into_host_func(store),
-        "watt_bytes_new" => sym::watt_bytes_new.into_host_func(store),
-        "watt_bytes_len" => sym::watt_bytes_len.into_host_func(store),
-        "watt_bytes_read" => sym::watt_bytes_read.into_host_func(store),
-        "watt_print_panic" => sym::watt_print_panic.into_host_func(store),
+        "string_new" => sym::string_new.into_host_func(store),
+        "string_len" => sym::string_len.into_host_func(store),
+        "string_read" => sym::string_read.into_host_func(store),
+        "bytes_new" => sym::bytes_new.into_host_func(store),
+        "bytes_len" => sym::bytes_len.into_host_func(store),
+        "bytes_read" => sym::bytes_read.into_host_func(store),
+        "print_panic" => sym::print_panic.into_host_func(store),
 
         _ => unreachable!("unresolved import: {:?}", name),
     }

@@ -8,7 +8,7 @@ pub fn literal_to_string(literal: u32) -> u32 {
     })
 }
 
-pub fn watt_string_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
+pub fn string_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     Data::with(|d| {
         let len = len as usize;
         let ptr = ptr as usize;
@@ -18,14 +18,14 @@ pub fn watt_string_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     })
 }
 
-pub fn watt_string_len(string: u32) -> u32 {
+pub fn string_len(string: u32) -> u32 {
     Data::with(|d| {
         let string = &d.string[string];
         string.len() as u32
     })
 }
 
-pub fn watt_string_read(memory: *mut [u8], string: u32, ptr: u32) {
+pub fn string_read(memory: *mut [u8], string: u32, ptr: u32) {
     Data::with(|d| {
         let ptr = ptr as usize;
         let string = &d.string[string];
@@ -35,7 +35,7 @@ pub fn watt_string_read(memory: *mut [u8], string: u32, ptr: u32) {
     })
 }
 
-pub fn watt_bytes_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
+pub fn bytes_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     Data::with(|d| {
         let len = len as usize;
         let ptr = ptr as usize;
@@ -44,15 +44,15 @@ pub fn watt_bytes_new(memory: *mut [u8], ptr: u32, len: u32) -> u32 {
     })
 }
 
-pub fn watt_print_panic(string: u32) {
+pub fn print_panic(string: u32) {
     Data::with(|d| panic!("{}", d.string[string]))
 }
 
-pub fn watt_bytes_len(bytes: u32) -> u32 {
+pub fn bytes_len(bytes: u32) -> u32 {
     Data::with(|d| d.bytes[bytes].len() as u32)
 }
 
-pub fn watt_bytes_read(memory: *mut [u8], bytes: u32, ptr: u32) {
+pub fn bytes_read(memory: *mut [u8], bytes: u32, ptr: u32) {
     Data::with(|d| {
         let ptr = ptr as usize;
         let bytes = &d.bytes[bytes];

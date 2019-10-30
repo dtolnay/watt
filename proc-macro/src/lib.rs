@@ -14,12 +14,12 @@ extern "C" {
     fn token_stream_parse(ptr: *const u8, len: usize) -> u32;
     fn literal_to_string(lit: handle::Literal) -> handle::String;
 
-    fn watt_string_new(ptr: *const u8, len: usize) -> handle::String;
-    fn watt_string_len(string: handle::String) -> usize;
-    fn watt_string_read(string: handle::String, ptr: *mut u8);
-    fn watt_bytes_len(bytes: handle::Bytes) -> usize;
-    fn watt_bytes_read(bytes: handle::Bytes, ptr: *mut u8);
-    fn watt_print_panic(message: handle::String);
+    fn string_new(ptr: *const u8, len: usize) -> handle::String;
+    fn string_len(string: handle::String) -> usize;
+    fn string_read(string: handle::String, ptr: *mut u8);
+    fn bytes_len(bytes: handle::Bytes) -> usize;
+    fn bytes_read(bytes: handle::Bytes, ptr: *mut u8);
+    fn print_panic(message: handle::String);
 }
 
 mod handle {
@@ -60,8 +60,8 @@ pub mod __internal {
     fn panic_hook(panic: &PanicInfo) {
         let string = panic.to_string();
         unsafe {
-            let s = watt_string_new(string.as_ptr(), string.len());
-            watt_print_panic(s);
+            let s = string_new(string.as_ptr(), string.len());
+            print_panic(s);
         }
     }
 
@@ -69,10 +69,10 @@ pub mod __internal {
         set_wasm_panic_hook();
         let bytes = unsafe {
             let handle = token_stream_serialize(raw);
-            let len = watt_bytes_len(handle);
+            let len = bytes_len(handle);
             let mut ret = Vec::with_capacity(len);
             ret.set_len(len);
-            watt_bytes_read(handle, ret.as_mut_ptr());
+            bytes_read(handle, ret.as_mut_ptr());
             ret
         };
         decode::decode(&bytes)
@@ -708,10 +708,10 @@ impl Display for Literal {
             LiteralKind::Local(s) => Display::fmt(s, f),
             LiteralKind::Watt(handle) => unsafe {
                 let string = literal_to_string(*handle);
-                let len = watt_string_len(string);
+                let len = string_len(string);
                 let mut ret = Vec::with_capacity(len);
                 ret.set_len(len);
-                watt_string_read(string, ret.as_mut_ptr());
+                string_read(string, ret.as_mut_ptr());
                 let string = String::from_utf8_unchecked(ret);
                 Display::fmt(&string, f)
             },
