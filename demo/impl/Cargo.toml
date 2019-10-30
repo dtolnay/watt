@@ -6,7 +6,7 @@ edition = "2018"
 publish = false
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 proc-macro2 = "1.0"

@@ -13,7 +13,7 @@ WebAssembly.
 
 ```toml
 [dependencies]
-watt = "0.1"
+watt = "0.2"
 ```
 
 *Compiler support: requires rustc 1.35+*
@@ -69,20 +69,18 @@ everything is analogous to what will be shown here for `#[proc_macro]`.
 
 When your macro is ready, there are just a few changes we need to make to the
 signature and the Cargo.toml. In your lib.rs, change each of your macro entry
-points to a no\_mangle extern "C" function, and change the TokenStream in the
-signature from proc\_macro to proc\_macro2. Finally, add a call to
-`proc_macro2::set_wasm_panic_hook()` at the top of your macro to ensure panics
-get printed to the console; this is optional but helpful!
+points to use the attribute from the `proc_macro2` crate instead of the bare
+version of the macro. For example use `#[proc_macro2::proc_macro]` instead of
+`#[proc_macro]`. Next change the TokenStream in the signature from proc\_macro
+to proc\_macro2.
 
 It will look like:
 
 ```rust
 use proc_macro2::TokenStream;
 
-#[no_mangle]
-pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
-    proc_macro2::set_wasm_panic_hook();
-
+#[proc_macro2::proc_macro]
+pub fn my_macro(input: TokenStream) -> TokenStream {
     /* same as before */
 }
 ```
@@ -98,7 +96,7 @@ change it instead to say:
 
 ```toml
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [patch.crates-io]
 proc-macro2 = { git = "https://github.com/dtolnay/watt" }
@@ -118,7 +116,7 @@ bytes into the Watt runtime. In a new Cargo.toml, put:
 proc-macro = true
 
 [dependencies]
-watt = "0.1"
+watt = "0.2"
 ```
 
 And in its src/lib.rs put:

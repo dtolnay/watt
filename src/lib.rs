@@ -111,7 +111,7 @@
 //! proc-macro = true
 //!
 //! [dependencies]
-//! watt = "0.1"
+//! watt = "0.2"
 //! ```
 //!
 //! And in its src/lib.rs put:
@@ -189,6 +189,8 @@ mod runtime;
 
 mod data;
 mod debug;
+mod decode;
+mod encode;
 mod exec;
 mod import;
 mod sym;

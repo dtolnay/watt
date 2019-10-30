@@ -8,3 +8,6 @@ publish = false
 [features]
 proc-macro = []
 default = ["proc-macro"]
+
+[dependencies]
+proc-macro2-macros = { path = 'macros' }
