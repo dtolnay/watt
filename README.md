@@ -126,11 +126,11 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 
-static WASM: &[u8] = include_bytes!("my_macro.wasm");
+static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
 
 #[proc_macro]
 pub fn my_macro(input: TokenStream) -> TokenStream {
-    watt::proc_macro("my_macro", input, WASM)
+    WASM.proc_macro("my_macro", input)
 }
 ```
 
