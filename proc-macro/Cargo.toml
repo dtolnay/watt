@@ -10,4 +10,4 @@ proc-macro = []
 default = ["proc-macro"]
 
 [dependencies]
-proc-macro2-macros = { path = 'macros' }
+watt-abi = { path = "macros" }

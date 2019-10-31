@@ -1,8 +1,8 @@
 extern crate proc_macro;
 
-pub use proc_macro2_macros::expand_attribute as proc_macro_attribute;
-pub use proc_macro2_macros::expand_derive as proc_macro_derive;
-pub use proc_macro2_macros::expand_macro as proc_macro;
+pub use watt_abi::expand_attribute as proc_macro_attribute;
+pub use watt_abi::expand_derive as proc_macro_derive;
+pub use watt_abi::expand_macro as proc_macro;
 
 mod decode;
 mod encode;
