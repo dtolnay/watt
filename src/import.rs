@@ -1,10 +1,5 @@
-use crate::runtime::{func1, mem_func2, Module, Store};
+use crate::runtime::{func1, mem_func2, HostFunc, Module, Store};
 use crate::sym;
-
-#[cfg(jit)]
-use crate::runtime::Func as HostFunc;
-#[cfg(not(jit))]
-use crate::runtime::HostFunc;
 
 #[cfg(jit)]
 pub fn extern_vals(module: &Module, store: &mut Store) -> crate::runtime::InstanceImports {
