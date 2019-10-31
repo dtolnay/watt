@@ -49,9 +49,8 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, wasm: &[u8]) -> TokenStream 
 
     let cursor = Cursor::new(wasm);
     let module = decode_module(cursor).unwrap();
-    if cfg!(watt_debug) {
-        crate::debug::print_module(&module);
-    }
+    #[cfg(watt_debug)]
+    crate::debug::print_module(&module);
 
     let mut store = init_store();
     let extern_vals = import::extern_vals(&module, &mut store);

@@ -116,6 +116,7 @@ pub fn module_imports<'a>(
 }
 
 /// List module exports with their types
+#[cfg(any(feature = "test", watt_debug))]
 pub fn module_exports<'a>(
     module: &'a ast::Module,
 ) -> impl Iterator<Item = (&'a str, types::Extern)> + 'a {

@@ -194,7 +194,7 @@ mod exec;
 mod import;
 mod sym;
 
-#[cfg(not(jit))]
+#[cfg(all(watt_debug, not(jit)))]
 mod debug;
 
 use proc_macro::TokenStream;
