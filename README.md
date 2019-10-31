@@ -154,7 +154,8 @@ crate, to the src directory of your shim crate, and it's ready to publish!
   A neat approach would be to provide some kind of `cargo install watt-runtime`
   which installs an optimized Wasm runtime locally, which the Watt crate can
   detect and hand off code to if available. That way we avoid running things in
-  a debug-mode runtime altogether.
+  a debug-mode runtime altogether. The experimental beginnings of this can be
+  found under the [jit/](jit) directory.
 
 - **Tooling.**&emsp;The getting started section shows there are a lot of steps
   to building a macro for Watt, and a pretty hacky patching in of proc-macro2.
@@ -197,27 +198,6 @@ fn main() {
     println!("{}", serde_json::to_string(&w).unwrap());
 }
 ```
-
-<br>
-
-## Enabling JIT compilation support
-
-Experimental support is available in `watt` to use a JIT at compile-time instead
-of a built-in interpreter. The JIT is expected to be a dynamic library which
-implements the [proposed wasm C API][wasm-c-api]. You can enable this usage by
-setting the environment variable:
-
-```
-$ export WATT_JIT=/path/to/wasmtime/target/release/libwasmtime_api.so
-```
-
-Note that the `WATT_JIT` must be set at build time when procedural macros are
-executing. And example library which implements the required API is
-[`wasmtime_api`] which can be built with `cargo build --features wasm-c-api
---release` inside the `wasmtime-api` folder of that repository.
-
-[wasm-c-api]: https://github.com/webassembly/wasm-c-api
-[`wasmtime_api`]: https://github.com/CraneStation/wasmtime/tree/master/wasmtime-api
 
 <br>
 
