@@ -1,4 +1,5 @@
 use super::*;
+use std::rc::Rc;
 use std::str;
 
 pub fn decode(mut buf: &[u8]) -> TokenStream {
@@ -36,7 +37,9 @@ impl Decode for TokenStream {
                 _ => tokens.push(TokenTree::Literal(Literal::decode(data))),
             }
         }
-        TokenStream { inner: tokens }
+        TokenStream {
+            inner: Rc::new(tokens),
+        }
     }
 }
 
@@ -114,7 +117,7 @@ impl Decode for Literal {
         Literal {
             span: Span::decode(data),
             kind: match byte(data) {
-                0 => LiteralKind::Local(str(data).to_string()),
+                0 => LiteralKind::Local(super::intern(str(data))),
                 _ => LiteralKind::Watt(handle::Literal(u32::decode(data))),
             },
         }

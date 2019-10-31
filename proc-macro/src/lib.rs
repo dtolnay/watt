@@ -2,6 +2,9 @@
 
 extern crate proc_macro;
 
+use std::collections::HashMap;
+use std::rc::Rc;
+
 pub use watt_abi::expand_attribute as proc_macro_attribute;
 pub use watt_abi::expand_derive as proc_macro_derive;
 pub use watt_abi::expand_macro as proc_macro;
@@ -88,7 +91,7 @@ pub mod __internal {
 
 #[derive(Clone)]
 pub struct TokenStream {
-    inner: Vec<TokenTree>,
+    inner: Rc<Vec<TokenTree>>,
 }
 
 impl From<proc_macro::TokenStream> for TokenStream {
@@ -103,7 +106,9 @@ pub struct LexError {
 
 impl TokenStream {
     pub fn new() -> Self {
-        TokenStream { inner: Vec::new() }
+        TokenStream {
+            inner: Rc::new(Vec::new()),
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -132,19 +137,21 @@ impl FromStr for TokenStream {
 
 impl From<TokenTree> for TokenStream {
     fn from(token: TokenTree) -> Self {
-        TokenStream { inner: vec![token] }
+        TokenStream {
+            inner: Rc::new(vec![token]),
+        }
     }
 }
 
 impl Extend<TokenTree> for TokenStream {
     fn extend<I: IntoIterator<Item = TokenTree>>(&mut self, iter: I) {
-        self.inner.extend(iter);
+        Rc::make_mut(&mut self.inner).extend(iter);
     }
 }
 
 impl Extend<TokenStream> for TokenStream {
     fn extend<I: IntoIterator<Item = TokenStream>>(&mut self, iter: I) {
-        self.inner.extend(iter.into_iter().flatten());
+        Rc::make_mut(&mut self.inner).extend(iter.into_iter().flatten());
     }
 }
 
@@ -430,7 +437,7 @@ impl Display for Punct {
 
 #[derive(Clone)]
 pub struct Ident {
-    sym: String,
+    sym: &'static str,
     span: Span,
     raw: bool,
 }
@@ -440,7 +447,7 @@ impl Ident {
         Ident::validate(string);
 
         Ident {
-            sym: string.to_owned(),
+            sym: intern(string),
             span,
             raw,
         }
@@ -513,7 +520,7 @@ where
     fn eq(&self, other: &T) -> bool {
         let other = other.as_ref();
         if self.raw {
-            other.starts_with("r#") && self.sym == other[2..]
+            other.starts_with("r#") && self.sym == &other[2..]
         } else {
             self.sym == other
         }
@@ -567,7 +574,7 @@ pub struct Literal {
 #[derive(Clone)]
 enum LiteralKind {
     Watt(handle::Literal),
-    Local(String),
+    Local(&'static str),
 }
 
 macro_rules! suffixed_numbers {
@@ -589,7 +596,7 @@ macro_rules! unsuffixed_numbers {
 impl Literal {
     fn _new(text: String) -> Literal {
         Literal {
-            kind: LiteralKind::Local(text),
+            kind: LiteralKind::Local(intern(text)),
             span: Span::call_site(),
         }
     }
@@ -732,17 +739,21 @@ impl Debug for Literal {
 
 pub mod token_stream {
     use super::*;
+    use std::ops::Range;
 
     pub use crate::TokenStream;
 
     #[derive(Clone)]
-    pub struct IntoIter(std::vec::IntoIter<TokenTree>);
+    pub struct IntoIter {
+        stream: TokenStream,
+        range: Range<usize>,
+    }
 
     impl Iterator for IntoIter {
         type Item = TokenTree;
 
         fn next(&mut self) -> Option<TokenTree> {
-            self.0.next()
+            self.range.next().map(|i| self.stream.inner[i].clone())
         }
     }
 
@@ -751,7 +762,32 @@ pub mod token_stream {
         type IntoIter = IntoIter;
 
         fn into_iter(self) -> Self::IntoIter {
-            IntoIter(self.inner.into_iter())
+            IntoIter {
+                range: 0..self.inner.len(),
+                stream: self,
+            }
         }
+    }
+}
+
+// Look up `s` in our global table of interned strings. If it exists return that
+// string, otherwise allocate `s` onto the heap, leak it, and then return it.
+fn intern<T>(s: T) -> &'static str
+where
+    T: AsRef<str> + Into<Box<str>>,
+{
+    // NB: `static mut` and `unsafe` here should be ok because we are in wasm
+    // which is always single-threaded right now.
+    static mut MAP: Option<HashMap<&'static str, &'static str>> = None;
+    unsafe {
+        let map = MAP.get_or_insert_with(HashMap::new);
+        if let Some(s) = map.get(s.as_ref()) {
+            return s;
+        }
+
+        let map = MAP.as_mut().unwrap();
+        let val = Box::leak(s.into());
+        map.insert(val, val);
+        val
     }
 }
