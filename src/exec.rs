@@ -1,16 +1,16 @@
 use crate::data::Data;
 use crate::import;
-use crate::Instance;
+use crate::WasmMacro;
 use proc_macro::TokenStream;
 use std::cell::RefCell;
 use std::collections::hash_map::{HashMap, Entry};
 
-pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &Instance) -> TokenStream {
+pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     _proc_macro(fun, inputs, instance)
 }
 
 #[cfg(jit)]
-fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &crate::Instance) -> TokenStream {
+fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     use crate::runtime::*;
 
     struct ThreadState {
@@ -34,7 +34,7 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &crate::Instance) 
     }
 
     impl ThreadState {
-        pub fn instance(&mut self, instance: &crate::Instance) -> (&Module, &Instance) {
+        pub fn instance(&mut self, instance: &WasmMacro) -> (&Module, &Instance) {
             let id = instance.id();
             let entry = match self.instances.entry(id) {
                 Entry::Occupied(e) => return (&self.modules[&id], &*e.into_mut()),
@@ -80,7 +80,7 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &crate::Instance) 
 }
 
 #[cfg(not(jit))]
-fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &Instance) -> TokenStream {
+fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     use crate::runtime::{
         decode_module, get_export, init_store, instantiate_module, invoke_func,
         runtime::ModuleInst, ExternVal, Store, Value,
@@ -103,7 +103,7 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &Instance) -> Toke
     }
 
     impl ThreadState {
-        pub fn instance(&mut self, instance: &crate::Instance) -> &ModuleInst {
+        pub fn instance(&mut self, instance: &WasmMacro) -> &ModuleInst {
             let id = instance.id();
             let entry = match self.instances.entry(id) {
                 Entry::Occupied(e) => return e.into_mut(),
