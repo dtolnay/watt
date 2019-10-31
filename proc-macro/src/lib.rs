@@ -1,3 +1,5 @@
+#![allow(clippy::identity_op, clippy::trivially_copy_pass_by_ref)]
+
 extern crate proc_macro;
 
 pub use watt_abi::expand_attribute as proc_macro_attribute;
@@ -142,8 +144,7 @@ impl Extend<TokenTree> for TokenStream {
 
 impl Extend<TokenStream> for TokenStream {
     fn extend<I: IntoIterator<Item = TokenStream>>(&mut self, iter: I) {
-        self.inner
-            .extend(iter.into_iter().flat_map(|stream| stream));
+        self.inner.extend(iter.into_iter().flatten());
     }
 }
 
@@ -334,8 +335,8 @@ pub enum Delimiter {
 impl Group {
     pub fn new(delimiter: Delimiter, stream: TokenStream) -> Self {
         Group {
-            delimiter: delimiter,
-            stream: stream,
+            delimiter,
+            stream,
             span: Span::call_site(),
         }
     }
@@ -440,8 +441,8 @@ impl Ident {
 
         Ident {
             sym: string.to_owned(),
-            span: span,
-            raw: raw,
+            span,
+            raw,
         }
     }
 
@@ -628,7 +629,7 @@ impl Literal {
 
     pub fn f32_unsuffixed(f: f32) -> Literal {
         let mut s = f.to_string();
-        if !s.contains(".") {
+        if !s.contains('.') {
             s.push_str(".0");
         }
         Literal::_new(s)
@@ -636,7 +637,7 @@ impl Literal {
 
     pub fn f64_unsuffixed(f: f64) -> Literal {
         let mut s = f.to_string();
-        if !s.contains(".") {
+        if !s.contains('.') {
             s.push_str(".0");
         }
         Literal::_new(s)
@@ -670,6 +671,7 @@ impl Literal {
         Literal::_new(text)
     }
 
+    #[allow(clippy::match_overlapping_arm)]
     pub fn byte_string(bytes: &[u8]) -> Literal {
         let mut escaped = "b\"".to_string();
         for b in bytes {

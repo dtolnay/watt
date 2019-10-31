@@ -26,7 +26,7 @@ mod trap;
 mod val;
 mod valtype;
 pub use self::engine::*;
-pub use self::func::{*, Func as HostFunc};
+pub use self::func::{Func as HostFunc, *};
 pub use self::functype::*;
 pub use self::instance::*;
 pub use self::memory::*;

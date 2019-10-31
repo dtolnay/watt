@@ -4,7 +4,7 @@ use std::str;
 pub fn decode(mut buf: &[u8]) -> TokenStream {
     let ret = TokenStream::decode(&mut buf);
     assert!(buf.is_empty());
-    return ret;
+    ret
 }
 
 trait Decode {
@@ -21,7 +21,7 @@ fn str<'a>(data: &mut &'a [u8]) -> &'a str {
     let len = u32::decode(data) as usize;
     let ret = str::from_utf8(&data[..len]).unwrap();
     *data = &data[len..];
-    return ret;
+    ret
 }
 
 impl Decode for TokenStream {
@@ -47,7 +47,7 @@ impl Decode for Group {
         let stream = TokenStream::decode(data);
         let mut ret = Group::new(delimiter, stream);
         ret.set_span(span);
-        return ret;
+        ret
     }
 }
 
@@ -77,7 +77,7 @@ impl Decode for u32 {
             | ((data[2] as u32) << 16)
             | ((data[3] as u32) << 24);
         *data = &data[4..];
-        return ret;
+        ret
     }
 }
 
@@ -96,7 +96,7 @@ impl Decode for Punct {
             Spacing::decode(data),
         );
         p.set_span(Span::decode(data));
-        return p;
+        p
     }
 }
 

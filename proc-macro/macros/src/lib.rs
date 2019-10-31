@@ -17,7 +17,7 @@ pub fn expand_macro(_attr: TokenStream, mut tokens: TokenStream) -> TokenStream 
         name = name
     );
     tokens.extend(TokenStream::from_str(&source).unwrap());
-    return tokens;
+    tokens
 }
 
 #[proc_macro_attribute]
@@ -35,7 +35,7 @@ pub fn expand_attribute(_attr: TokenStream, mut tokens: TokenStream) -> TokenStr
         name = name
     );
     tokens.extend(TokenStream::from_str(&source).unwrap());
-    return tokens;
+    tokens
 }
 
 #[proc_macro_attribute]
@@ -52,5 +52,5 @@ pub fn expand_derive(_attr: TokenStream, mut tokens: TokenStream) -> TokenStream
         name = name
     );
     tokens.extend(TokenStream::from_str(&source).unwrap());
-    return tokens;
+    tokens
 }
