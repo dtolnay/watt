@@ -30,127 +30,132 @@ impl Drop for Func {
     }
 }
 
-pub unsafe trait WasmArg: Sized {
+pub unsafe trait WasmVal {
     fn push_valtype(list: &mut Vec<ValType>);
+}
+
+pub unsafe trait WasmArg: WasmVal + Sized {
     unsafe fn from(ptr: *const ffi::wasm_val_t) -> (Self, *const ffi::wasm_val_t);
-    unsafe fn into(self, ptr: *mut ffi::wasm_val_t);
 }
 
-macro_rules! wasmarg {
-    ($($a:ident)*) => ($(
-        unsafe impl WasmArg for $a {
-            fn push_valtype(list: &mut Vec<ValType>) {
-                list.push(ValType::$a());
-            }
-            unsafe fn from(ptr: *const ffi::wasm_val_t) -> ($a, *const ffi::wasm_val_t) {
-                ((*ptr).of.$a, ptr.offset(1))
-            }
-            unsafe fn into(self, ptr: *mut ffi::wasm_val_t) {
-                (*ptr).of.$a = self;
-            }
-        }
-    )*)
+pub unsafe trait WasmRet: WasmVal + Sized {
+    unsafe fn into(value: Self, ptr: *mut ffi::wasm_val_t);
 }
 
-wasmarg! { i32 i64 f32 f64 }
-
-macro_rules! wasmarg_as {
-    ($($a:ident as $b:ident)*) => ($(
-        unsafe impl WasmArg for $b {
-            fn push_valtype(list: &mut Vec<ValType>) {
-                $a::push_valtype(list);
-            }
-            unsafe fn from(ptr: *const ffi::wasm_val_t) -> ($b, *const ffi::wasm_val_t) {
-                let (a, b) = <$a as WasmArg>::from(ptr);
-                (a as $b, b)
-            }
-            unsafe fn into(self, ptr: *mut ffi::wasm_val_t) {
-                <$a as WasmArg>::into(self as $a, ptr)
-            }
-        }
-    )*)
+unsafe impl WasmVal for u32 {
+    fn push_valtype(list: &mut Vec<ValType>) {
+        list.push(ValType::i32());
+    }
 }
 
-wasmarg_as! {
-    i32 as u32
-    i64 as u64
+unsafe impl WasmArg for u32 {
+    unsafe fn from(ptr: *const ffi::wasm_val_t) -> (Self, *const ffi::wasm_val_t) {
+        ((*ptr).of.i32 as u32, ptr.offset(1))
+    }
 }
 
-unsafe impl WasmArg for () {
+unsafe impl WasmRet for u32 {
+    unsafe fn into(value: Self, ptr: *mut ffi::wasm_val_t) {
+        (*ptr).of.i32 = value as i32;
+    }
+}
+
+unsafe impl WasmVal for () {
     fn push_valtype(_list: &mut Vec<ValType>) {}
-
-    unsafe fn from(ptr: *const ffi::wasm_val_t) -> ((), *const ffi::wasm_val_t) {
-        ((), ptr.offset(1))
-    }
-
-    unsafe fn into(self, _ptr: *mut ffi::wasm_val_t) {}
 }
 
-unsafe impl WasmArg for *mut [u8] {
-    fn push_valtype(_list: &mut Vec<ValType>) {}
-
-    unsafe fn from(ptr: *const ffi::wasm_val_t) -> (*mut [u8], *const ffi::wasm_val_t) {
-        (super::current_memory::with(|m| m.as_slice()), ptr)
-    }
-
-    unsafe fn into(self, _ptr: *mut ffi::wasm_val_t) {
-        unreachable!()
-    }
+unsafe impl WasmRet for () {
+    unsafe fn into(_value: Self, _ptr: *mut ffi::wasm_val_t) {}
 }
 
 unsafe extern "C" fn dtor<T>(env: *mut c_void) {
     drop(Box::from_raw(env as *mut T));
 }
 
-macro_rules! fnimpl {
-    ($traitname:ident $($arg:ident)*) => (
-        pub trait $traitname<$($arg),*> {
-            fn into_host_func(self, store: &Store) -> Func;
-        }
+pub fn func1<A, R, F>(func: F, store: &Store) -> Func
+where
+    A: WasmArg,
+    R: WasmRet,
+    F: Fn(A) -> R + 'static,
+{
+    let mut params = Vec::new();
+    A::push_valtype(&mut params);
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<A, R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
 
-        #[allow(non_snake_case)]
-        impl<F: FnMut($($arg),*) -> R, R: WasmArg, $($arg: WasmArg),*> $traitname<$($arg),*> for F {
-            fn into_host_func(self, store: &Store) -> Func {
-                let mut _params = Vec::new();
-                $($arg::push_valtype(&mut _params);)*
-                let mut results = Vec::new();
-                R::push_valtype(&mut results);
-                let ty = FuncType::new(ValTypeVec::new(&_params), ValTypeVec::new(&results));
-                let me = Box::new(self);
-                let ptr = Box::into_raw(me);
-                return unsafe {
-                    Func::into_host_func(
-                        store,
-                        &ty,
-                        Some(callback::<F, R, $($arg),*>),
-                        ptr as *mut c_void,
-                        dtor::<F>,
-                    )
-                };
-
-                unsafe extern "C" fn callback<F: FnMut($($arg),*) -> R, R: WasmArg, $($arg: WasmArg),*>(
-                    env: *mut c_void,
-                    _args: *const ffi::wasm_val_t,
-                    results: *mut ffi::wasm_val_t,
-                ) -> *mut ffi::wasm_trap_t {
-                    let env = &mut *(env as *mut F);
-                    $(
-                        let ($arg, _args) = WasmArg::from(_args);
-                    )*
-                    let ret = env($($arg),*);
-                    ret.into(results);
-                    ptr::null_mut()
-                }
-
-            }
-        }
-    );
+    unsafe extern "C" fn callback<A, R, F>(
+        env: *mut c_void,
+        args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        A: WasmArg,
+        R: WasmRet,
+        F: Fn(A) -> R,
+    {
+        let env = &*(env as *const F);
+        let (a, _args) = A::from(args);
+        let ret = env(a);
+        R::into(ret, results);
+        ptr::null_mut()
+    }
 }
 
-fnimpl!(WasmFunc0);
-fnimpl!(WasmFunc1 A);
-fnimpl!(WasmFunc2 A B);
-fnimpl!(WasmFunc3 A B C);
+pub fn mem_func2<A, B, R, F>(func: F, store: &Store) -> Func
+where
+    A: WasmArg,
+    B: WasmArg,
+    R: WasmRet,
+    F: Fn(&mut [u8], A, B) -> R + 'static,
+{
+    let mut params = Vec::new();
+    A::push_valtype(&mut params);
+    B::push_valtype(&mut params);
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<A, B, R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
+
+    unsafe extern "C" fn callback<A, B, R, F>(
+        env: *mut c_void,
+        args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        A: WasmArg,
+        B: WasmArg,
+        R: WasmRet,
+        F: Fn(&mut [u8], A, B) -> R,
+    {
+        let env = &*(env as *const F);
+        let mem = super::current_memory::with(|m| m.as_slice());
+        let (a, args) = A::from(args);
+        let (b, _args) = B::from(args);
+        let ret = env(&mut *mem, a, b);
+        R::into(ret, results);
+        ptr::null_mut()
+    }
+}
 
 #[repr(transparent)]
 pub struct FuncRef<'a> {

@@ -18,7 +18,7 @@ mod valid;
 pub mod values;
 
 pub use self::ast::Module;
-pub use self::func::{WasmFunc0, WasmFunc1, WasmFunc2, WasmFunc3};
+pub use self::func::{func1, mem_func2};
 pub use self::interpreter::Interpreter;
 pub use self::runtime::{ExternVal, HostFunc};
 pub use self::types::Extern;

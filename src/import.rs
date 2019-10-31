@@ -1,4 +1,4 @@
-use crate::runtime::{Module, Store};
+use crate::runtime::{func1, mem_func2, Module, Store};
 use crate::sym;
 
 #[cfg(jit)]
@@ -52,21 +52,19 @@ pub fn extern_vals(module: &Module, store: &mut Store) -> Vec<crate::runtime::Ex
 }
 
 fn host_func(name: &str, store: &Store) -> HostFunc {
-    use crate::runtime::{WasmFunc1, WasmFunc3};
-
     match name {
-        "token_stream_serialize" => sym::token_stream_serialize.into_host_func(store),
-        "token_stream_deserialize" => sym::token_stream_deserialize.into_host_func(store),
-        "token_stream_parse" => sym::token_stream_parse.into_host_func(store),
-        "literal_to_string" => sym::literal_to_string.into_host_func(store),
+        "token_stream_serialize" => func1(sym::token_stream_serialize, store),
+        "token_stream_deserialize" => mem_func2(sym::token_stream_deserialize, store),
+        "token_stream_parse" => mem_func2(sym::token_stream_parse, store),
+        "literal_to_string" => func1(sym::literal_to_string, store),
 
-        "string_new" => sym::string_new.into_host_func(store),
-        "string_len" => sym::string_len.into_host_func(store),
-        "string_read" => sym::string_read.into_host_func(store),
-        "bytes_new" => sym::bytes_new.into_host_func(store),
-        "bytes_len" => sym::bytes_len.into_host_func(store),
-        "bytes_read" => sym::bytes_read.into_host_func(store),
-        "print_panic" => sym::print_panic.into_host_func(store),
+        "string_new" => mem_func2(sym::string_new, store),
+        "string_len" => func1(sym::string_len, store),
+        "string_read" => mem_func2(sym::string_read, store),
+        "bytes_new" => mem_func2(sym::bytes_new, store),
+        "bytes_len" => func1(sym::bytes_len, store),
+        "bytes_read" => mem_func2(sym::bytes_read, store),
+        "print_panic" => func1(sym::print_panic, store),
 
         _ => unreachable!("unresolved import: {:?}", name),
     }
