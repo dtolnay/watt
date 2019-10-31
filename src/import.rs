@@ -16,7 +16,7 @@ pub fn extern_vals(module: &Module, store: &mut Store) -> crate::runtime::Instan
         assert_eq!(
             import.module(),
             "watt-0.2",
-            "unknown module to provide import for"
+            "Wasm import from unknown module"
         );
         host_func(import.name(), store)
     }
@@ -34,7 +34,7 @@ pub fn extern_vals(module: &Module, store: &mut Store) -> Vec<crate::runtime::Ex
 
     fn mk_host_func(import: Import, store: &mut Store) -> ExternVal {
         let (module, name, ref sig) = import;
-        assert_eq!(module, "watt-0.2", "unknown module to provide import for");
+        assert_eq!(module, "watt-0.2", "Wasm import from unknown module");
         let func = match sig {
             Extern::Func(func) => func,
             Extern::Table(_) | Extern::Memory(_) | Extern::Global(_) => {
