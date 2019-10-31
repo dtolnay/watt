@@ -2,7 +2,7 @@
 
 extern crate proc_macro;
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 pub use watt_abi::expand_attribute as proc_macro_attribute;
@@ -778,16 +778,16 @@ where
 {
     // NB: `static mut` and `unsafe` here should be ok because we are in wasm
     // which is always single-threaded right now.
-    static mut MAP: Option<HashMap<&'static str, &'static str>> = None;
+    static mut INTERN: Option<HashSet<&'static str>> = None;
     unsafe {
-        let map = MAP.get_or_insert_with(HashMap::new);
+        let map = INTERN.get_or_insert_with(HashSet::new);
         if let Some(s) = map.get(s.as_ref()) {
             return s;
         }
 
-        let map = MAP.as_mut().unwrap();
+        let map = INTERN.as_mut().unwrap();
         let val = Box::leak(s.into());
-        map.insert(val, val);
+        map.insert(val);
         val
     }
 }
