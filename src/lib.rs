@@ -198,119 +198,160 @@ mod sym;
 mod debug;
 
 use proc_macro::TokenStream;
+use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 
-/// A #\[proc_macro\] implemented in wasm!
+/// An instantiation of a WebAssembly module used to invoke procedural macro
+/// methods on the wasm module.
 ///
-/// # Canonical macro implementation:
 ///
-/// ```
-/// # const IGNORE: &str = stringify! {
-/// use proc_macro2::TokenStream;
-///
-/// #[no_mangle]
-/// pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
-///     proc_macro2::set_wasm_panic_hook();
-///
-///     ...
-/// }
-/// # };
-/// ```
-///
-/// # Canonical entry point:
+/// # Examples
 ///
 /// ```
 /// # const IGNORE: &str = stringify! {
-/// extern crate proc_macro;
-///
-/// use proc_macro::TokenStream;
-///
-/// static WASM: &[u8] = include_bytes!("my_macro.wasm");
-///
-/// #[proc_macro]
-/// pub fn my_macro(input: TokenStream) -> TokenStream {
-///     watt::proc_macro("my_macro", input, WASM)
-/// }
+/// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
 /// # };
 /// ```
-pub fn proc_macro(fun: &str, input: TokenStream, wasm: &[u8]) -> TokenStream {
-    exec::proc_macro(fun, vec![input], wasm)
+pub struct Instance {
+    wasm: &'static [u8],
+    id: AtomicUsize,
 }
 
-/// A #\[proc_macro_derive\] implemented in wasm!
-///
-/// # Canonical macro implementation:
-///
-/// ```
-/// # const IGNORE: &str = stringify! {
-/// use proc_macro2::TokenStream;
-///
-/// #[no_mangle]
-/// pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
-///     proc_macro2::set_wasm_panic_hook();
-///
-///     ...
-/// }
-/// # };
-/// ```
-///
-/// # Canonical entry point:
-///
-/// ```
-/// # const IGNORE: &str = stringify! {
-/// extern crate proc_macro;
-///
-/// use proc_macro::TokenStream;
-///
-/// static WASM: &[u8] = include_bytes!("my_macro.wasm");
-///
-/// #[proc_macro_derive(MyDerive)]
-/// pub fn my_macro(input: TokenStream) -> TokenStream {
-///     watt::proc_macro_derive("my_macro", input, WASM)
-/// }
-/// # };
-/// ```
-pub fn proc_macro_derive(fun: &str, input: TokenStream, wasm: &[u8]) -> TokenStream {
-    exec::proc_macro(fun, vec![input], wasm)
-}
+impl Instance {
+    /// Creates a new `Instance` from the statically included blob of wasm bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    /// # };
+    /// ```
+    pub const fn new(wasm: &'static [u8]) -> Instance {
+        Instance {
+            wasm,
+            id: AtomicUsize::new(0),
+        }
+    }
 
-/// A #\[proc_macro_attribute\] implemented in wasm!
-///
-/// # Canonical macro implementation:
-///
-/// ```
-/// # const IGNORE: &str = stringify! {
-/// use proc_macro2::TokenStream;
-///
-/// #[no_mangle]
-/// pub extern "C" fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {
-///     proc_macro2::set_wasm_panic_hook();
-///
-///     ...
-/// }
-/// # };
-/// ```
-///
-/// # Canonical entry point:
-///
-/// ```
-/// # const IGNORE: &str = stringify! {
-/// extern crate proc_macro;
-///
-/// use proc_macro::TokenStream;
-///
-/// static WASM: &[u8] = include_bytes!("my_macro.wasm");
-///
-/// #[proc_macro_attribute]
-/// pub fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {
-///     watt::proc_macro_attribute("my_macro", args, input, WASM)
-/// }
-/// # };
-/// ```
-pub fn proc_macro_attribute(
-    fun: &str,
-    args: TokenStream,
-    input: TokenStream,
-    wasm: &[u8],
-) -> TokenStream {
-    exec::proc_macro(fun, vec![args, input], wasm)
+    /// A #\[proc_macro\] implemented in wasm!
+    ///
+    /// # Canonical macro implementation:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// use proc_macro2::TokenStream;
+    ///
+    /// #[proc_macro2::proc_macro]
+    /// pub fn my_macro(input: TokenStream) -> TokenStream {
+    ///     ...
+    /// }
+    /// # };
+    /// ```
+    ///
+    /// # Canonical entry point:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// extern crate proc_macro;
+    ///
+    /// use proc_macro::TokenStream;
+    ///
+    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    ///
+    /// #[proc_macro]
+    /// pub fn my_macro(input: TokenStream) -> TokenStream {
+    ///     WASM.proc_macro("my_macro", input)
+    /// }
+    /// # };
+    /// ```
+    pub fn proc_macro(&self, fun: &str, input: TokenStream) -> TokenStream {
+        exec::proc_macro(fun, vec![input], self)
+    }
+
+    /// A #\[proc_macro_derive\] implemented in wasm!
+    ///
+    /// # Canonical macro implementation:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// use proc_macro2::TokenStream;
+    ///
+    /// #[proc_macro2::proc_macro_derive(MyTrait)]
+    /// pub fn my_macro(input: TokenStream) -> TokenStream {
+    ///     ...
+    /// }
+    /// # };
+    /// ```
+    ///
+    /// # Canonical entry point:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// extern crate proc_macro;
+    ///
+    /// use proc_macro::TokenStream;
+    ///
+    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    ///
+    /// #[proc_macro_derive(MyDerive)]
+    /// pub fn my_macro(input: TokenStream) -> TokenStream {
+    ///     WASM.proc_macro_derive("my_macro", input)
+    /// }
+    /// # };
+    /// ```
+    pub fn proc_macro_derive(&self, fun: &str, input: TokenStream) -> TokenStream {
+        exec::proc_macro(fun, vec![input], self)
+    }
+
+    /// A #\[proc_macro_attribute\] implemented in wasm!
+    ///
+    /// # Canonical macro implementation:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// use proc_macro2::TokenStream;
+    ///
+    /// #[proc_macro2::proc_macro_attribute]
+    /// pub fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {
+    ///     ...
+    /// }
+    /// # };
+    /// ```
+    ///
+    /// # Canonical entry point:
+    ///
+    /// ```
+    /// # const IGNORE: &str = stringify! {
+    /// extern crate proc_macro;
+    ///
+    /// use proc_macro::TokenStream;
+    ///
+    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    ///
+    /// #[proc_macro_attribute]
+    /// pub fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {
+    ///     WASM.proc_macro_attribute("my_macro", args, input)
+    /// }
+    /// # };
+    /// ```
+    pub fn proc_macro_attribute(
+        &self,
+        fun: &str,
+        args: TokenStream,
+        input: TokenStream,
+    ) -> TokenStream {
+        exec::proc_macro(fun, vec![args, input], self)
+    }
+
+    fn id(&self) -> usize {
+        static NEXT_ID: AtomicUsize = AtomicUsize::new(1);
+        match self.id.load(SeqCst) {
+            0 => {}
+            n => return n,
+        }
+        let id = NEXT_ID.fetch_add(1, SeqCst);
+        self.id
+            .compare_exchange(0, id, SeqCst, SeqCst)
+            .unwrap_or_else(|id| id)
+    }
 }
