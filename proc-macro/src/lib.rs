@@ -779,15 +779,14 @@ where
     // NB: `static mut` and `unsafe` here should be ok because we are in wasm
     // which is always single-threaded right now.
     static mut INTERN: Option<HashSet<&'static str>> = None;
-    unsafe {
-        let map = INTERN.get_or_insert_with(HashSet::new);
-        if let Some(s) = map.get(s.as_ref()) {
-            return s;
-        }
+    let intern = unsafe { &mut INTERN };
 
-        let map = INTERN.as_mut().unwrap();
-        let val = Box::leak(s.into());
-        map.insert(val);
-        val
+    let map = intern.get_or_insert_with(HashSet::new);
+    if let Some(s) = map.get(s.as_ref()) {
+        return s;
     }
+
+    let val = Box::leak(s.into());
+    map.insert(val);
+    val
 }
