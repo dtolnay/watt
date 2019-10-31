@@ -1,6 +1,8 @@
 #![allow(
     clippy::cognitive_complexity,
     clippy::float_cmp,
+    clippy::let_unit_value,
+    clippy::module_inception,
     clippy::new_without_default,
     clippy::too_many_arguments,
     clippy::unreadable_literal

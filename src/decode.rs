@@ -1,3 +1,5 @@
+#![allow(clippy::identity_op)]
+
 use crate::data::Data;
 use proc_macro::*;
 use std::char;
@@ -6,7 +8,7 @@ use std::str::{self, FromStr};
 pub fn decode(mut bytes: &[u8], data: &Data) -> TokenStream {
     let ret = TokenStream::decode(&mut bytes, data);
     assert!(bytes.is_empty());
-    return ret;
+    ret
 }
 
 trait Decode {
@@ -23,7 +25,7 @@ fn str<'a>(bytes: &mut &'a [u8], data: &Data) -> &'a str {
     let len = u32::decode(bytes, data) as usize;
     let ret = str::from_utf8(&bytes[..len]).unwrap();
     *bytes = &bytes[len..];
-    return ret;
+    ret
 }
 
 impl Decode for TokenStream {
@@ -38,7 +40,7 @@ impl Decode for TokenStream {
                 _ => ret.extend(Some(TokenTree::Literal(Literal::decode(bytes, data)))),
             }
         }
-        return ret;
+        ret
     }
 }
 
@@ -49,7 +51,7 @@ impl Decode for Group {
         let stream = TokenStream::decode(bytes, data);
         let mut ret = Group::new(delimiter, stream);
         ret.set_span(span);
-        return ret;
+        ret
     }
 }
 
@@ -82,7 +84,7 @@ impl Decode for u32 {
             | ((bytes[2] as u32) << 16)
             | ((bytes[3] as u32) << 24);
         *bytes = &bytes[4..];
-        return ret;
+        ret
     }
 }
 
@@ -101,7 +103,7 @@ impl Decode for Punct {
             Spacing::decode(bytes, data),
         );
         p.set_span(Span::decode(bytes, data));
-        return p;
+        p
     }
 }
 
@@ -129,11 +131,11 @@ impl Decode for Literal {
                 _ => unreachable!(),
             };
             literal.set_span(span);
-            return literal;
+            literal
         } else {
             let mut literal = data.literal[u32::decode(bytes, data)].clone();
             literal.set_span(span);
-            return literal;
+            literal
         }
     }
 }

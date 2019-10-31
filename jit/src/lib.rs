@@ -9,6 +9,8 @@
 //!
 //! [1]: https://github.com/WebAssembly/wasm-c-api
 
+#![allow(clippy::wrong_self_convention, clippy::useless_transmute)]
+
 use std::slice;
 use std::str;
 

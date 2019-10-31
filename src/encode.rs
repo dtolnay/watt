@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 pub fn encode(stream: TokenStream, data: &mut Data) -> Vec<u8> {
     let mut dst = Vec::new();
     stream.encode(&mut dst, data);
-    return dst;
+    dst
 }
 
 trait Encode {
