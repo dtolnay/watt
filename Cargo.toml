@@ -12,9 +12,10 @@ edition = "2018"
 include = [
     "LICENSE_APACHE",
     "LICENSE_MIT",
+    "jit/src/*",
     "runtime/LICENSE_ISC",
-    "runtime/src",
-    "src",
+    "runtime/src/*",
+    "src/*",
 ]
 
 [workspace]
