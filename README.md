@@ -208,7 +208,7 @@ implements the [proposed wasm C API][wasm-c-api]. You can enable this usage by
 setting the environment variable:
 
 ```
-$ export WATT_JIT=/path/to/libwasmtime_api.so
+$ export WATT_JIT=/path/to/wasmtime/target/release/libwasmtime_api.so
 ```
 
 Note that the `WATT_JIT` must be set at build time when procedural macros are
