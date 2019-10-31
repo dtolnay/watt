@@ -208,26 +208,28 @@ use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 ///
 /// ```
 /// # const IGNORE: &str = stringify! {
-/// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+/// static MACRO: WasmMacro = WasmMacro::new(WASM);
+/// static WASM: &[u8] = include_bytes!("my_macro.wasm");
 /// # };
 /// ```
-pub struct Instance {
+pub struct WasmMacro {
     wasm: &'static [u8],
     id: AtomicUsize,
 }
 
-impl Instance {
-    /// Creates a new `Instance` from the statically included blob of wasm bytes.
+impl WasmMacro {
+    /// Creates a new `WasmMacro` from the statically included blob of wasm bytes.
     ///
     /// # Examples
     ///
     /// ```
     /// # const IGNORE: &str = stringify! {
-    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    /// static MACRO: WasmMacro = WasmMacro::new(WASM);
+    /// static WASM: &[u8] = include_bytes!("my_macro.wasm");
     /// # };
     /// ```
-    pub const fn new(wasm: &'static [u8]) -> Instance {
-        Instance {
+    pub const fn new(wasm: &'static [u8]) -> WasmMacro {
+        WasmMacro {
             wasm,
             id: AtomicUsize::new(0),
         }
@@ -255,8 +257,10 @@ impl Instance {
     /// extern crate proc_macro;
     ///
     /// use proc_macro::TokenStream;
+    /// use watt::WasmMacro;
     ///
-    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    /// static MACRO: WasmMacro = WasmMacro::new(WASM);
+    /// static WASM: &[u8] = include_bytes!("my_macro.wasm");
     ///
     /// #[proc_macro]
     /// pub fn my_macro(input: TokenStream) -> TokenStream {
@@ -290,8 +294,10 @@ impl Instance {
     /// extern crate proc_macro;
     ///
     /// use proc_macro::TokenStream;
+    /// use watt::WasmMacro;
     ///
-    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    /// static MACRO: WasmMacro = WasmMacro::new(WASM);
+    /// static WASM: &[u8] = include_bytes!("my_macro.wasm");
     ///
     /// #[proc_macro_derive(MyDerive)]
     /// pub fn my_macro(input: TokenStream) -> TokenStream {
@@ -325,8 +331,10 @@ impl Instance {
     /// extern crate proc_macro;
     ///
     /// use proc_macro::TokenStream;
+    /// use watt::WasmMacro;
     ///
-    /// static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+    /// static MACRO: WasmMacro = WasmMacro::new(WASM);
+    /// static WASM: &[u8] = include_bytes!("my_macro.wasm");
     ///
     /// #[proc_macro_attribute]
     /// pub fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {

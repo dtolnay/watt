@@ -125,12 +125,14 @@ And in its src/lib.rs put:
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use watt::WasmMacro;
 
-static WASM: watt::Instance = watt::Instance::new(include_bytes!("my_macro.wasm"));
+static MACRO: WasmMacro = WasmMacro::new(WASM);
+static WASM: &[u8] = include_bytes("my_macro.wasm");
 
 #[proc_macro]
 pub fn my_macro(input: TokenStream) -> TokenStream {
-    WASM.proc_macro("my_macro", input)
+    MACRO.proc_macro("my_macro", input)
 }
 ```
 
