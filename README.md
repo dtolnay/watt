@@ -200,6 +200,25 @@ fn main() {
 
 <br>
 
+## Enabling JIT compilation support
+
+Experimental support is available in `watt` to use a JIT at compile-time instead
+of a built-in interpreter. The JIT is expected to be a dynamic library which
+implements the [proposed wasm C API](https://github.com/webassembly/wasm-c-api).
+You can enable this usage by setting the environment variable:
+
+```
+$ export WATT_JIT=/path/to/libwasmtime_api.so
+```
+
+Note that the `WATT_JIT` must be set at build time when procedural macros are
+executing. And example library which implements the required API is
+[`wasmtime_api`](https://github.com/webassembly/wasm-c-api) which can be
+built with `cargo build --features wasm-c-api --release` inside the
+`wasmtime-api` folder of that repository.
+
+<br>
+
 ## Acknowledgements
 
 The current underlying Wasm runtime is a fork of the [Rust-WASM] project by
