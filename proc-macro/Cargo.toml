@@ -8,6 +8,3 @@ publish = false
 [features]
 proc-macro = []
 default = ["proc-macro"]
-
-[dependencies]
-watt-abi = { path = "macros" }

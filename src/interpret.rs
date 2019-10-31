@@ -2,7 +2,7 @@ use crate::data::Data;
 use crate::import;
 use crate::runtime::{
     alloc_func, decode_module, get_export, init_store, instantiate_module, invoke_func,
-    module_imports, Extern, ExternVal, Module, ModuleInst, Store, Value,
+    module_imports, Extern, ExternVal, FuncAddr, Module, ModuleInst, Store, Value,
 };
 use crate::WasmMacro;
 use proc_macro::TokenStream;
@@ -45,33 +45,68 @@ impl ThreadState {
 
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     STATE.with(|state| {
-        let mut state = state.borrow_mut();
+        let state = &mut state.borrow_mut();
         let instance = state.instance(instance);
-        let main = match get_export(instance, fun) {
-            Ok(ExternVal::Func(main)) => main,
-            _ => unimplemented!("unresolved macro: {:?}", fun),
-        };
+        let exports = Exports::collect(instance, fun);
 
         let _guard = Data::guard();
-        let args = Data::with(|d| {
+        let raws: Vec<Value> = Data::with(|d| {
             inputs
                 .into_iter()
                 .map(|input| Value::I32(d.tokenstream.push(input)))
                 .collect()
         });
 
-        let res = invoke_func(&mut state.store, main, args);
-        let values = match res {
-            Ok(values) => values,
-            Err(err) => panic!("{:?}", err),
-        };
-        let handle = values.into_iter().next().unwrap();
-        let handle = match handle {
+        let args: Vec<Value> = raws
+            .into_iter()
+            .map(|raw| call(state, exports.raw_to_token_stream, vec![raw]))
+            .collect();
+        let output = call(state, exports.main, args);
+        let raw = call(state, exports.token_stream_into_raw, vec![output]);
+        let handle = match raw {
             Value::I32(handle) => handle,
             _ => unimplemented!("unexpected macro return type"),
         };
         Data::with(|d| d.tokenstream[handle].clone())
     })
+}
+
+struct Exports {
+    main: FuncAddr,
+    raw_to_token_stream: FuncAddr,
+    token_stream_into_raw: FuncAddr,
+}
+
+impl Exports {
+    fn collect(instance: &ModuleInst, entry_point: &str) -> Self {
+        let main = match get_export(instance, entry_point) {
+            Ok(ExternVal::Func(main)) => main,
+            _ => unimplemented!("unresolved macro: {:?}", entry_point),
+        };
+        let raw_to_token_stream = match get_export(instance, "raw_to_token_stream") {
+            Ok(ExternVal::Func(func)) => func,
+            _ => unimplemented!("raw_to_token_stream not found"),
+        };
+        let token_stream_into_raw = match get_export(instance, "token_stream_into_raw") {
+            Ok(ExternVal::Func(func)) => func,
+            _ => unimplemented!("token_stream_into_raw not found"),
+        };
+        Exports {
+            main,
+            raw_to_token_stream,
+            token_stream_into_raw,
+        }
+    }
+}
+
+fn call(state: &mut ThreadState, func: FuncAddr, args: Vec<Value>) -> Value {
+    match invoke_func(&mut state.store, func, args) {
+        Ok(ret) => {
+            assert_eq!(ret.len(), 1);
+            ret.into_iter().next().unwrap()
+        }
+        Err(err) => panic!("{:?}", err),
+    }
 }
 
 type Import<'a> = (&'a str, &'a str, Extern);

@@ -1,5 +1,4 @@
 use super::*;
-use std::rc::Rc;
 use std::str;
 
 pub fn decode(mut buf: &[u8]) -> TokenStream {
