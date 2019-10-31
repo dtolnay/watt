@@ -1,5 +1,5 @@
 use crate::data::Data;
-use crate::{debug, import};
+use crate::import;
 use proc_macro::TokenStream;
 
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, wasm: &[u8]) -> TokenStream {
@@ -13,9 +13,6 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, wasm: &[u8]) -> TokenStream 
     let engine = Engine::new();
     let mut store = Store::new(&engine);
     let module = Module::new(&store, wasm);
-    if cfg!(watt_debug) {
-        debug::print_module(&module);
-    }
     let imports = import::extern_vals(&module, &mut store);
     let module_instance = Instance::new(&store, &module, &imports).unwrap();
     let main = module
@@ -53,7 +50,7 @@ fn _proc_macro(fun: &str, inputs: Vec<TokenStream>, wasm: &[u8]) -> TokenStream 
     let cursor = Cursor::new(wasm);
     let module = decode_module(cursor).unwrap();
     if cfg!(watt_debug) {
-        debug::print_module(&module);
+        crate::debug::print_module(&module);
     }
 
     let mut store = init_store();

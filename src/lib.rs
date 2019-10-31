@@ -188,12 +188,14 @@ mod runtime;
 mod runtime;
 
 mod data;
-mod debug;
 mod decode;
 mod encode;
 mod exec;
 mod import;
 mod sym;
+
+#[cfg(not(jit))]
+mod debug;
 
 use proc_macro::TokenStream;
 
