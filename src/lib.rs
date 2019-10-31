@@ -264,7 +264,7 @@ impl WasmMacro {
     ///
     /// #[proc_macro]
     /// pub fn my_macro(input: TokenStream) -> TokenStream {
-    ///     WASM.proc_macro("my_macro", input)
+    ///     MACRO.proc_macro("my_macro", input)
     /// }
     /// # };
     /// ```
@@ -301,7 +301,7 @@ impl WasmMacro {
     ///
     /// #[proc_macro_derive(MyDerive)]
     /// pub fn my_macro(input: TokenStream) -> TokenStream {
-    ///     WASM.proc_macro_derive("my_macro", input)
+    ///     MACRO.proc_macro_derive("my_macro", input)
     /// }
     /// # };
     /// ```
@@ -338,7 +338,7 @@ impl WasmMacro {
     ///
     /// #[proc_macro_attribute]
     /// pub fn my_macro(args: TokenStream, input: TokenStream) -> TokenStream {
-    ///     WASM.proc_macro_attribute("my_macro", args, input)
+    ///     MACRO.proc_macro_attribute("my_macro", args, input)
     /// }
     /// # };
     /// ```
