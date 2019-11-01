@@ -3,7 +3,7 @@ use crate::import;
 use crate::WasmMacro;
 use proc_macro::TokenStream;
 use std::cell::RefCell;
-use std::collections::hash_map::{HashMap, Entry};
+use std::collections::hash_map::{Entry, HashMap};
 
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     _proc_macro(fun, inputs, instance)
