@@ -30,17 +30,17 @@ fn str<'a>(bytes: &mut &'a [u8], data: &Data) -> &'a str {
 
 impl Decode for TokenStream {
     fn decode(bytes: &mut &[u8], data: &Data) -> Self {
-        let mut ret = TokenStream::new();
+        let mut tts = Vec::new();
         loop {
             match byte(bytes) {
                 0 => break,
-                1 => ret.extend(Some(TokenTree::Group(Group::decode(bytes, data)))),
-                2 => ret.extend(Some(TokenTree::Ident(Ident::decode(bytes, data)))),
-                3 => ret.extend(Some(TokenTree::Punct(Punct::decode(bytes, data)))),
-                _ => ret.extend(Some(TokenTree::Literal(Literal::decode(bytes, data)))),
+                1 => tts.push(TokenTree::Group(Group::decode(bytes, data))),
+                2 => tts.push(TokenTree::Ident(Ident::decode(bytes, data))),
+                3 => tts.push(TokenTree::Punct(Punct::decode(bytes, data))),
+                _ => tts.push(TokenTree::Literal(Literal::decode(bytes, data))),
             }
         }
-        ret
+        tts.into_iter().collect()
     }
 }
 
