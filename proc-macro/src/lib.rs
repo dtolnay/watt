@@ -5,6 +5,7 @@ extern crate proc_macro;
 mod decode;
 mod encode;
 mod ffi;
+mod lexer;
 mod rc;
 
 use crate::rc::Rc;
@@ -75,7 +76,9 @@ impl FromStr for TokenStream {
     type Err = LexError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        ffi::parse(input)
+        lexer::lex(input).map_err(|_| LexError {
+            _marker: PhantomData,
+        })
     }
 }
 
@@ -424,11 +427,11 @@ impl Ident {
         fn ident_ok(string: &str) -> bool {
             let mut chars = string.chars();
             let first = chars.next().unwrap();
-            if !is_ident_start(first) {
+            if !rustc_lexer::is_id_start(first) {
                 return false;
             }
             for ch in chars {
-                if !is_ident_continue(ch) {
+                if !rustc_lexer::is_id_continue(ch) {
                     return false;
                 }
             }
@@ -437,18 +440,6 @@ impl Ident {
 
         if !ident_ok(validate) {
             panic!("{:?} is not a valid Ident", string);
-        }
-
-        #[inline]
-        fn is_ident_start(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_'
-            /*|| (c > '\x7f' && UnicodeXID::is_xid_start(c))*/ // TODO
-        }
-
-        #[inline]
-        fn is_ident_continue(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' || ('0' <= c && c <= '9')
-            /*|| (c > '\x7f' && UnicodeXID::is_xid_continue(c))*/ // TODO
         }
     }
 }
@@ -540,7 +531,10 @@ macro_rules! unsuffixed_numbers {
 }
 
 impl Literal {
-    fn _new(text: String) -> Literal {
+    fn _new<T>(text: T) -> Literal
+    where
+        T: AsRef<str> + Into<Box<str>>,
+    {
         Literal {
             kind: LiteralKind::Local(intern(text)),
             span: Span::call_site(),

@@ -1,6 +1,5 @@
-use crate::{decode, encode, handle, LexError, TokenStream};
+use crate::{decode, encode, handle, TokenStream};
 use std::fmt::{self, Display};
-use std::marker::PhantomData;
 use std::panic::{self, PanicInfo};
 use std::sync::Once;
 
@@ -8,7 +7,6 @@ use std::sync::Once;
 extern "C" {
     fn token_stream_serialize(stream: u32) -> handle::Bytes;
     fn token_stream_deserialize(ptr: *const u8, len: usize) -> u32;
-    fn token_stream_parse(ptr: *const u8, len: usize) -> u32;
     fn literal_to_string(lit: handle::Literal) -> handle::String;
 
     fn string_new(ptr: *const u8, len: usize) -> handle::String;
@@ -52,17 +50,6 @@ pub extern "C" fn raw_to_token_stream(raw: u32) -> TokenStream {
 pub extern "C" fn token_stream_into_raw(stream: TokenStream) -> u32 {
     let bytes = encode::encode(stream);
     unsafe { token_stream_deserialize(bytes.as_ptr(), bytes.len()) }
-}
-
-pub fn parse(input: &str) -> Result<TokenStream, LexError> {
-    let ret = unsafe { token_stream_parse(input.as_ptr(), input.len()) };
-    if ret == u32::max_value() {
-        Err(LexError {
-            _marker: PhantomData,
-        })
-    } else {
-        Ok(raw_to_token_stream(ret))
-    }
 }
 
 pub fn display_literal(handle: handle::Literal, f: &mut fmt::Formatter) -> fmt::Result {

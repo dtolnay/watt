@@ -8,3 +8,6 @@ publish = false
 [features]
 proc-macro = []
 default = ["proc-macro"]
+
+[dependencies]
+rustc_lexer = "0.1"
