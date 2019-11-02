@@ -11,12 +11,12 @@ pub use watt_abi::expand_macro as proc_macro;
 
 mod decode;
 mod encode;
+mod lexer;
 
 #[link(wasm_import_module = "watt-0.2")]
 extern "C" {
     fn token_stream_serialize(stream: u32) -> handle::Bytes;
     fn token_stream_deserialize(ptr: *const u8, len: usize) -> u32;
-    fn token_stream_parse(ptr: *const u8, len: usize) -> u32;
     fn literal_to_string(lit: handle::Literal) -> handle::String;
 
     fn string_new(ptr: *const u8, len: usize) -> handle::String;
@@ -50,6 +50,8 @@ use std::ops::RangeBounds;
 use std::panic::{self, PanicInfo};
 use std::str::FromStr;
 use std::sync::Once;
+
+use rustc_lexer::{is_id_continue, is_id_start};
 
 #[doc(hidden)]
 pub mod __internal {
@@ -126,12 +128,7 @@ impl FromStr for TokenStream {
     type Err = LexError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let ret = unsafe { token_stream_parse(input.as_ptr(), input.len()) };
-        if ret == u32::max_value() {
-            Err(LexError { _private: () })
-        } else {
-            Ok(__internal::raw_to_token_stream(ret))
-        }
+        lexer::lex(input).map_err(|_| LexError { _private: () })
     }
 }
 
@@ -478,11 +475,11 @@ impl Ident {
         fn ident_ok(string: &str) -> bool {
             let mut chars = string.chars();
             let first = chars.next().unwrap();
-            if !is_ident_start(first) {
+            if !is_id_start(first) {
                 return false;
             }
             for ch in chars {
-                if !is_ident_continue(ch) {
+                if !is_id_continue(ch) {
                     return false;
                 }
             }
@@ -491,18 +488,6 @@ impl Ident {
 
         if !ident_ok(validate) {
             panic!("{:?} is not a valid Ident", string);
-        }
-
-        #[inline]
-        fn is_ident_start(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_'
-            /*|| (c > '\x7f' && UnicodeXID::is_xid_start(c))*/ // TODO
-        }
-
-        #[inline]
-        fn is_ident_continue(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' || ('0' <= c && c <= '9')
-            /*|| (c > '\x7f' && UnicodeXID::is_xid_continue(c))*/ // TODO
         }
     }
 }
@@ -594,7 +579,10 @@ macro_rules! unsuffixed_numbers {
 }
 
 impl Literal {
-    fn _new(text: String) -> Literal {
+    fn _new<T>(text: T) -> Literal
+    where
+        T: AsRef<str> + Into<Box<str>>,
+    {
         Literal {
             kind: LiteralKind::Local(intern(text)),
             span: Span::call_site(),

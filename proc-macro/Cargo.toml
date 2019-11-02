@@ -11,3 +11,4 @@ default = ["proc-macro"]
 
 [dependencies]
 watt-abi = { path = "macros" }
+rustc_lexer = "0.1.0"
