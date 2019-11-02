@@ -20,6 +20,3 @@ include = [
 
 [workspace]
 members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
-
-[patch.crates-io]
-watt = { path = "." }
