@@ -238,7 +238,7 @@ fn dynamically_resolve(name: &str) -> usize {
         };
         let ret = dlsym(handle, name.as_ptr());
         assert!(!ret.is_null());
-        return ret as usize;
+        ret as usize
     }
 }
 
@@ -266,7 +266,7 @@ fn dynamically_resolve(name: &str) -> usize {
         };
         let ret = GetProcAddress(handle, name.as_ptr());
         assert!(!ret.is_null());
-        return ret as usize;
+        ret as usize
     }
 }
 
