@@ -68,6 +68,7 @@ impl Decode for Span {
     fn decode(data: &mut &[u8]) -> Self {
         Span {
             handle: u32::decode(data),
+            _marker: PhantomData,
         }
     }
 }
