@@ -8,6 +8,7 @@ mod rc;
 
 use crate::rc::Rc;
 use std::collections::HashSet;
+use std::marker::PhantomData;
 use std::mem;
 
 #[link(wasm_import_module = "watt-0.3")]
@@ -102,7 +103,7 @@ impl From<proc_macro::TokenStream> for TokenStream {
 }
 
 pub struct LexError {
-    _private: (),
+    _marker: PhantomData<Rc<()>>,
 }
 
 impl TokenStream {
@@ -133,7 +134,9 @@ impl FromStr for TokenStream {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let ret = unsafe { token_stream_parse(input.as_ptr(), input.len()) };
         if ret == u32::max_value() {
-            Err(LexError { _private: () })
+            Err(LexError {
+                _marker: PhantomData,
+            })
         } else {
             Ok(__internal::raw_to_token_stream(ret))
         }
@@ -230,12 +233,14 @@ impl Debug for LexError {
 #[derive(Copy, Clone, Debug)]
 pub struct Span {
     handle: u32,
+    _marker: PhantomData<Rc<()>>,
 }
 
 impl Span {
     pub fn call_site() -> Self {
         Span {
             handle: u32::max_value(),
+            _marker: PhantomData,
         }
     }
 
