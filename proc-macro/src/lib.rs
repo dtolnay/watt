@@ -10,7 +10,7 @@ use crate::rc::Rc;
 use std::collections::HashSet;
 use std::mem;
 
-#[link(wasm_import_module = "watt-0.2")]
+#[link(wasm_import_module = "watt-0.3")]
 extern "C" {
     fn token_stream_serialize(stream: u32) -> handle::Bytes;
     fn token_stream_deserialize(ptr: *const u8, len: usize) -> u32;

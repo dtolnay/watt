@@ -9,7 +9,7 @@ Watt is a runtime for executing Rust procedural macros compiled as WebAssembly.
 
 ```toml
 [dependencies]
-watt = "0.2"
+watt = "0.3"
 ```
 
 *Compiler support: requires rustc 1.35+*
@@ -110,7 +110,7 @@ bytes into the Watt runtime. In a new Cargo.toml, put:
 proc-macro = true
 
 [dependencies]
-watt = "0.2"
+watt = "0.3"
 ```
 
 And in its src/lib.rs put:
