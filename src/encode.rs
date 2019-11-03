@@ -83,7 +83,7 @@ impl Encode for Ident {
     }
 }
 
-impl Encode for &'_ str {
+impl Encode for &str {
     fn encode(self, dst: &mut Vec<u8>, data: &mut Data) {
         self.len().encode(dst, data);
         dst.extend_from_slice(self.as_bytes());

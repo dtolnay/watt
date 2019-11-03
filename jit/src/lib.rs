@@ -48,7 +48,7 @@ pub mod current_memory {
 
     std::thread_local!(static CURRENT: Cell<*const MemoryRef<'static>> = Cell::new(ptr::null()));
 
-    pub fn with<R>(f: impl FnOnce(&MemoryRef<'_>) -> R) -> R {
+    pub fn with<R>(f: impl FnOnce(&MemoryRef) -> R) -> R {
         CURRENT.with(|c| {
             assert!(!c.get().is_null());
             unsafe { f(&*c.get()) }
