@@ -1,5 +1,5 @@
 use super::ffi;
-use std::fmt;
+use std::fmt::{self, Debug, Display};
 use std::mem;
 
 #[repr(transparent)]
@@ -17,15 +17,15 @@ impl Trap {
     }
 }
 
-impl fmt::Display for Trap {
+impl Display for Trap {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.message().as_str().fmt(f)
+        Display::fmt(self.message().as_str(), f)
     }
 }
 
-impl fmt::Debug for Trap {
+impl Debug for Trap {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
+        Display::fmt(self, f)
     }
 }
 
