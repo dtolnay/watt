@@ -33,7 +33,7 @@ impl ThreadState {
     pub fn instance(&mut self, instance: &WasmMacro) -> (&Module, &Instance) {
         let id = instance.id();
         let entry = match self.instances.entry(id) {
-            Entry::Occupied(e) => return (&self.modules[&id], &*e.into_mut()),
+            Entry::Occupied(e) => return (&self.modules[&id], e.into_mut()),
             Entry::Vacant(v) => v,
         };
 
@@ -42,7 +42,7 @@ impl ThreadState {
         let module_instance = Instance::new(&self.store, &module, &imports).unwrap();
         self.modules.insert(id, module);
         let instance = entry.insert(module_instance);
-        (&self.modules[&id], &*instance)
+        (&self.modules[&id], instance)
     }
 }
 
