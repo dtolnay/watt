@@ -183,8 +183,17 @@
 extern crate proc_macro;
 
 #[cfg(not(jit))]
+#[path = "interpret.rs"]
+mod exec;
+
+#[cfg(not(jit))]
 #[path = "../runtime/src/lib.rs"]
 mod runtime;
+
+#[cfg(jit)]
+#[path = "jit.rs"]
+mod exec;
+
 #[cfg(jit)]
 #[path = "../jit/src/lib.rs"]
 mod runtime;
@@ -192,12 +201,8 @@ mod runtime;
 mod data;
 mod decode;
 mod encode;
-mod exec;
 mod import;
 mod sym;
-
-#[cfg(all(watt_debug, not(jit)))]
-mod debug;
 
 use proc_macro::TokenStream;
 use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
