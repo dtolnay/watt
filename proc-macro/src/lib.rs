@@ -2,15 +2,13 @@
 
 extern crate proc_macro;
 
-use std::collections::HashSet;
-use std::rc::Rc;
-
-pub use watt_abi::expand_attribute as proc_macro_attribute;
-pub use watt_abi::expand_derive as proc_macro_derive;
-pub use watt_abi::expand_macro as proc_macro;
-
 mod decode;
 mod encode;
+mod rc;
+
+use crate::rc::Rc;
+use std::collections::HashSet;
+use std::mem;
 
 #[link(wasm_import_module = "watt-0.2")]
 extern "C" {
@@ -70,7 +68,8 @@ pub mod __internal {
         }
     }
 
-    pub fn raw_to_token_stream(raw: u32) -> TokenStream {
+    #[no_mangle]
+    pub extern "C" fn raw_to_token_stream(raw: u32) -> TokenStream {
         set_wasm_panic_hook();
         let bytes = unsafe {
             let handle = token_stream_serialize(raw);
@@ -83,13 +82,15 @@ pub mod __internal {
         decode::decode(&bytes)
     }
 
-    pub fn token_stream_into_raw(stream: TokenStream) -> u32 {
+    #[no_mangle]
+    pub extern "C" fn token_stream_into_raw(stream: TokenStream) -> u32 {
         let bytes = encode::encode(stream);
         unsafe { token_stream_deserialize(bytes.as_ptr(), bytes.len()) }
     }
 }
 
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct TokenStream {
     inner: Rc<Vec<TokenTree>>,
 }
@@ -113,6 +114,10 @@ impl TokenStream {
 
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
+    }
+
+    fn _assert_single_word(self) -> usize {
+        unsafe { mem::transmute::<TokenStream, usize>(self) }
     }
 }
 

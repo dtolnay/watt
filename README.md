@@ -69,17 +69,16 @@ everything is analogous to what will be shown here for `#[proc_macro]`.
 
 When your macro is ready, there are just a few changes we need to make to the
 signature and the Cargo.toml. In your lib.rs, change each of your macro entry
-points to use a proc macro attribute from the proc-macro2 crate, such as
-`#[proc_macro2::proc_macro]` instead of `#[proc_macro]`. Also change the
-TokenStream in the signature from proc\_macro to proc\_macro2.
+points to a no\_mangle extern "C" function, and change the TokenStream in the
+signature from proc\_macro to proc\_macro2.
 
 It will look like:
 
 ```rust
 use proc_macro2::TokenStream;
 
-#[proc_macro2::proc_macro]
-pub fn my_macro(input: TokenStream) -> TokenStream {
+#[no_mangle]
+pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
     /* same as before */
 }
 ```

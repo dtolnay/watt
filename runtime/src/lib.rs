@@ -22,12 +22,12 @@ pub mod values;
 pub use self::ast::Module;
 pub use self::func::{func1, mem_func2};
 pub use self::interpreter::Interpreter;
-pub use self::runtime::{ExternVal, HostFunc, ModuleInst};
+pub use self::runtime::{ExternVal, FuncAddr, HostFunc, ModuleInst};
 pub use self::types::Extern;
 pub use self::values::Value;
 
 #[cfg(feature = "test")]
-pub use self::runtime::{FuncAddr, GlobalAddr, MemAddr, TableAddr, PAGE_SIZE};
+pub use self::runtime::{GlobalAddr, MemAddr, TableAddr, PAGE_SIZE};
 
 use self::interpreter::{eval_const_expr, Trap, TrapOrigin};
 use self::runtime::*;
