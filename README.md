@@ -5,11 +5,7 @@ Watt
 [![Latest Version](https://img.shields.io/crates/v/watt.svg)](https://crates.io/crates/watt)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/watt)
 
-Watt<i>*</i> is a runtime for executing Rust procedural macros compiled as
-WebAssembly.
-
-<sup><b>*</b><i>optional but entertaining pronunciation:
-<b>wahteetee</b></i></sup>
+Watt is a runtime for executing Rust procedural macros compiled as WebAssembly.
 
 ```toml
 [dependencies]

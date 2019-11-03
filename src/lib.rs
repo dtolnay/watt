@@ -1,10 +1,7 @@
 //! # Watt
 //!
-//! Watt<sup>*</sup> is a runtime for executing Rust procedural macros compiled
-//! as WebAssembly.
-//!
-//! <sub><b>*</b><i>optional but entertaining pronunciation:
-//! <u>wahteetee</u></i></sub>
+//! Watt is a runtime for executing Rust procedural macros compiled as
+//! WebAssembly.
 //!
 //! <br>
 //!
