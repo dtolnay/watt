@@ -4,27 +4,13 @@ extern crate proc_macro;
 
 mod decode;
 mod encode;
+mod ffi;
 mod rc;
 
 use crate::rc::Rc;
 use std::collections::HashSet;
 use std::marker::PhantomData;
 use std::mem;
-
-#[link(wasm_import_module = "watt-0.3")]
-extern "C" {
-    fn token_stream_serialize(stream: u32) -> handle::Bytes;
-    fn token_stream_deserialize(ptr: *const u8, len: usize) -> u32;
-    fn token_stream_parse(ptr: *const u8, len: usize) -> u32;
-    fn literal_to_string(lit: handle::Literal) -> handle::String;
-
-    fn string_new(ptr: *const u8, len: usize) -> handle::String;
-    fn string_len(string: handle::String) -> usize;
-    fn string_read(string: handle::String, ptr: *mut u8);
-    fn bytes_len(bytes: handle::Bytes) -> usize;
-    fn bytes_read(bytes: handle::Bytes, ptr: *mut u8);
-    fn print_panic(message: handle::String);
-}
 
 mod handle {
     #[repr(transparent)]
@@ -46,49 +32,7 @@ use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::ops::RangeBounds;
-use std::panic::{self, PanicInfo};
 use std::str::FromStr;
-use std::sync::Once;
-
-#[doc(hidden)]
-pub mod __internal {
-    use super::*;
-
-    fn set_wasm_panic_hook() {
-        static INIT: Once = Once::new();
-        INIT.call_once(|| {
-            panic::set_hook(Box::new(panic_hook));
-        });
-    }
-
-    fn panic_hook(panic: &PanicInfo) {
-        let string = panic.to_string();
-        unsafe {
-            let s = string_new(string.as_ptr(), string.len());
-            print_panic(s);
-        }
-    }
-
-    #[no_mangle]
-    pub extern "C" fn raw_to_token_stream(raw: u32) -> TokenStream {
-        set_wasm_panic_hook();
-        let bytes = unsafe {
-            let handle = token_stream_serialize(raw);
-            let len = bytes_len(handle);
-            let mut ret = Vec::with_capacity(len);
-            ret.set_len(len);
-            bytes_read(handle, ret.as_mut_ptr());
-            ret
-        };
-        decode::decode(&bytes)
-    }
-
-    #[no_mangle]
-    pub extern "C" fn token_stream_into_raw(stream: TokenStream) -> u32 {
-        let bytes = encode::encode(stream);
-        unsafe { token_stream_deserialize(bytes.as_ptr(), bytes.len()) }
-    }
-}
 
 #[derive(Clone)]
 #[repr(transparent)]
@@ -132,14 +76,7 @@ impl FromStr for TokenStream {
     type Err = LexError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let ret = unsafe { token_stream_parse(input.as_ptr(), input.len()) };
-        if ret == u32::max_value() {
-            Err(LexError {
-                _marker: PhantomData,
-            })
-        } else {
-            Ok(__internal::raw_to_token_stream(ret))
-        }
+        ffi::parse(input)
     }
 }
 
@@ -581,7 +518,7 @@ pub struct Literal {
     span: Span,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 enum LiteralKind {
     Watt(handle::Literal),
     Local(&'static str),
@@ -723,17 +660,9 @@ impl Literal {
 
 impl Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self.kind {
+        match self.kind {
             LiteralKind::Local(s) => Display::fmt(s, f),
-            LiteralKind::Watt(handle) => unsafe {
-                let string = literal_to_string(*handle);
-                let len = string_len(string);
-                let mut ret = Vec::with_capacity(len);
-                ret.set_len(len);
-                string_read(string, ret.as_mut_ptr());
-                let string = String::from_utf8_unchecked(ret);
-                Display::fmt(&string, f)
-            },
+            LiteralKind::Watt(handle) => ffi::display_literal(handle, f),
         }
     }
 }
