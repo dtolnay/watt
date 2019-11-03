@@ -11,4 +11,5 @@ script:
   - cargo build --manifest-path demo/impl/Cargo.toml --release --target wasm32-unknown-unknown
   - cargo run --manifest-path demo/caller/Cargo.toml
   - cargo test --manifest-path runtime/tests/Cargo.toml
+  - cargo test --manifest-path proc-macro/Cargo.toml
   - WATT_JIT=1 cargo check
