@@ -25,16 +25,16 @@ mod store;
 mod trap;
 mod val;
 mod valtype;
-pub use self::engine::*;
-pub use self::func::{Func as HostFunc, *};
-pub use self::functype::*;
-pub use self::instance::*;
-pub use self::memory::*;
-pub use self::module::*;
-pub use self::store::*;
-pub use self::trap::*;
-pub use self::val::*;
-pub use self::valtype::*;
+pub use self::engine::Engine;
+pub use self::func::{func1, mem_func2, Func as HostFunc, Func, FuncRef};
+pub use self::functype::FuncType;
+pub use self::instance::{Extern, Instance, InstanceImports};
+pub use self::memory::MemoryRef;
+pub use self::module::{ImportType, Module};
+pub use self::store::Store;
+pub use self::trap::Trap;
+pub use self::val::Val;
+pub use self::valtype::{ValType, ValTypeVec};
 
 unsafe fn name_to_str<'a>(name: *const ffi::wasm_name_t) -> &'a str {
     str::from_utf8_unchecked(slice::from_raw_parts((*name).data, (*name).size))

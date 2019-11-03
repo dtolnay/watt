@@ -1,4 +1,6 @@
-use super::*;
+use crate::{
+    Delimiter, Group, Ident, Literal, LiteralKind, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 use std::convert::TryFrom;
 
 pub fn encode(stream: TokenStream) -> Vec<u8> {

@@ -1,4 +1,6 @@
-use proc_macro2::*;
+use proc_macro2::{
+    Delimiter, Group, Ident, LexError, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
 macro_rules! assert_impl {
     ($ty:ident is $($marker:ident) and +) => {

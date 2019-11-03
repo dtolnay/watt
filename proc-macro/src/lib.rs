@@ -677,7 +677,7 @@ impl Debug for Literal {
 }
 
 pub mod token_stream {
-    use super::*;
+    use crate::TokenTree;
     use std::ops::Range;
 
     pub use crate::TokenStream;

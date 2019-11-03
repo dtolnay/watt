@@ -1,4 +1,9 @@
-use super::*;
+use crate::{
+    handle, Delimiter, Group, Ident, Literal, LiteralKind, Punct, Rc, Spacing, Span, TokenStream,
+    TokenTree,
+};
+use std::char;
+use std::marker::PhantomData;
 use std::str;
 
 pub fn decode(mut buf: &[u8]) -> TokenStream {

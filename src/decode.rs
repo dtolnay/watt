@@ -1,7 +1,7 @@
 #![allow(clippy::identity_op)]
 
 use crate::data::Data;
-use proc_macro::*;
+use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::char;
 use std::str::{self, FromStr};
 

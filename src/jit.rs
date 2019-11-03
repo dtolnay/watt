@@ -1,7 +1,7 @@
 use crate::data::Data;
 use crate::import;
 use crate::runtime::{
-    current_memory, Engine, Extern, FuncRef, HostFunc, ImportType, Instance, InstanceImports,
+    current_memory, Engine, Extern, Func, FuncRef, ImportType, Instance, InstanceImports,
     MemoryRef, Module, Store, Val,
 };
 use crate::WasmMacro;
@@ -132,7 +132,7 @@ fn extern_vals(module: &Module, store: &mut Store) -> InstanceImports {
     imports
 }
 
-fn mk_host_func(import: &ImportType, store: &Store) -> HostFunc {
+fn mk_host_func(import: &ImportType, store: &Store) -> Func {
     // TODO: assert `import` is a function import
     assert_eq!(
         import.module(),
