@@ -8,9 +8,16 @@ mod ffi;
 mod rc;
 
 use crate::rc::Rc;
+use std::char;
+use std::cmp::Ordering;
 use std::collections::HashSet;
+use std::fmt::{self, Debug, Display};
+use std::hash::{Hash, Hasher};
+use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::mem;
+use std::ops::RangeBounds;
+use std::str::FromStr;
 
 mod handle {
     #[repr(transparent)]
@@ -25,14 +32,6 @@ mod handle {
     #[derive(Copy, Clone)]
     pub struct Literal(pub u32);
 }
-
-use std::char;
-use std::cmp::Ordering;
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::iter::FromIterator;
-use std::ops::RangeBounds;
-use std::str::FromStr;
 
 #[derive(Clone)]
 #[repr(transparent)]
