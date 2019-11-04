@@ -11,7 +11,6 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "string_new" => mem_func2(sym::string_new, store),
         "string_len" => func1(sym::string_len, store),
         "string_read" => mem_func2(sym::string_read, store),
-        "bytes_new" => mem_func2(sym::bytes_new, store),
         "bytes_len" => func1(sym::bytes_len, store),
         "bytes_read" => mem_func2(sym::bytes_read, store),
         "print_panic" => func1(sym::print_panic, store),

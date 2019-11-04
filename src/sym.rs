@@ -33,15 +33,6 @@ pub fn string_read(memory: &mut [u8], string: u32, ptr: u32) {
     })
 }
 
-pub fn bytes_new(memory: &mut [u8], ptr: u32, len: u32) -> u32 {
-    Data::with(|d| {
-        let len = len as usize;
-        let ptr = ptr as usize;
-        let bytes = memory[ptr..ptr + len].to_owned();
-        d.bytes.push(bytes)
-    })
-}
-
 pub fn print_panic(string: u32) {
     Data::with(|d| panic!("{}", d.string[string]))
 }
