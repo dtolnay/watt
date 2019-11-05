@@ -45,6 +45,12 @@ impl From<proc_macro::TokenStream> for TokenStream {
     }
 }
 
+impl From<TokenStream> for proc_macro::TokenStream {
+    fn from(_: TokenStream) -> Self {
+        unimplemented!("Into<proc_macro::TokenStream> does not exist in wasm");
+    }
+}
+
 pub struct LexError {
     _marker: PhantomData<Rc<()>>,
 }
