@@ -12,16 +12,16 @@ would be fine; a good one is [`wasmtime_api`] which runs on the Wasmtime runtime
 based on Cranelift.
 
 ```console
-$  git clone https://github.com/CraneStation/wasmtime
-$  cd wasmtime/wasmtime-api
-$  cargo build --features wasm-c-api --release
+$  git clone https://github.com/bytecodealliance/wasmtime
+$  cd wasmtime/crates/api
+$  cargo build --release
 ```
 
 Then ensure the following environment variable is defined, and Watt will begin
 using the JIT runtime when expanding macros.
 
 ```
-$  export WATT_JIT=/path/to/wasmtime/target/release/libwasmtime_api.so
+$  export WATT_JIT=/path/to/wasmtime/target/release/libwasmtime.so
 ```
 
 Note that `WATT_JIT` would have to be set by users that depend on a Watt-based
@@ -30,4 +30,4 @@ runtime to run the macro on. But again, JIT is optional and Watt-based macros
 will work the same even on systems without a JIT installed.
 
 [wasm-c-api]: https://github.com/webassembly/wasm-c-api
-[`wasmtime_api`]: https://github.com/CraneStation/wasmtime/tree/master/wasmtime-api
+[`wasmtime_api`]: https://github.com/bytecodealliance/wasmtime/tree/master/crates/api
