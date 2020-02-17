@@ -406,7 +406,11 @@ impl Ident {
     }
 
     pub fn new(string: &str, span: Span) -> Ident {
-        Ident::_new(string, false, span)
+        if string.starts_with("r#") {
+            Ident::_new(&string[2..], true, span)
+        } else {
+            Ident::_new(string, false, span)
+        }
     }
 
     pub fn span(&self) -> Span {
