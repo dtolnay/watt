@@ -93,7 +93,11 @@ impl Decode for Ident {
     fn decode(data: &mut &[u8]) -> Self {
         let span = Span::decode(data);
         let name = str(data);
-        Ident::new(name, span)
+        if name.starts_with("r#") {
+            Ident::new_raw(&name[2..], span)
+        } else {
+            Ident::new(name, span)
+        }
     }
 }
 

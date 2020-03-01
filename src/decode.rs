@@ -92,7 +92,14 @@ impl Decode for Ident {
     fn decode(bytes: &mut &[u8], data: &Data) -> Self {
         let span = Span::decode(bytes, data);
         let name = str(bytes, data);
-        Ident::new(name, span)
+        if name.starts_with("r#") {
+            match name.parse::<TokenStream>().unwrap().into_iter().next() {
+                Some(TokenTree::Ident(ident)) => ident,
+                _ => unreachable!(),
+            }
+        } else {
+            Ident::new(name, span)
+        }
     }
 }
 

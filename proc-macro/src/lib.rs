@@ -409,6 +409,10 @@ impl Ident {
         Ident::_new(string, false, span)
     }
 
+    pub(crate) fn new_raw(string: &str, span: Span) -> Ident {
+        Ident::_new(string, true, span)
+    }
+
     pub fn span(&self) -> Span {
         self.span
     }
