@@ -28,7 +28,8 @@ std::thread_local! {
 impl ThreadState {
     pub fn instance(&mut self, instance: &WasmMacro) -> &ModuleInst {
         let id = instance.id();
-        let entry = match self.instances.entry(id) {
+        let ThreadState { store, instances } = self;
+        let entry = match instances.entry(id) {
             Entry::Occupied(e) => return e.into_mut(),
             Entry::Vacant(v) => v,
         };
@@ -37,10 +38,43 @@ impl ThreadState {
         let module = decode_module(cursor).unwrap();
         #[cfg(watt_debug)]
         print_module(&module);
-        let extern_vals = extern_vals(&module, &mut self.store);
-        let module_instance = instantiate_module(&mut self.store, module, &extern_vals).unwrap();
-        entry.insert(module_instance)
+        let extern_vals = extern_vals(&module, store);
+        let module_instance = instantiate_module(store, module, &extern_vals).unwrap();
+        let module = entry.insert(module_instance);
+
+        for feature in instance.features {
+            publish_feature(feature, store, module)
+        }
+
+        module
     }
+}
+
+fn publish_feature(feature: &str, store: &mut Store, instance: &ModuleInst) {
+    /// A simple 32 bit FNV hash function. Must be the same one as used on the wasm side.
+    ///
+    /// <https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function>
+    /// <http://www.isthe.com/chongo/tech/comp/fnv/index.html#FNV-1a>
+    fn fnv1a(bytes: &[u8]) -> u32 {
+        const FNV_OFFSET: u32 = 0x811C_9DC5;
+        const FNV_PRIME: u32 = 0x100_0193;
+        let mut hash = FNV_OFFSET;
+        for &byte in bytes {
+            hash ^= byte as u32;
+            hash = hash.wrapping_mul(FNV_PRIME);
+        }
+        hash
+    }
+
+    // FIXME: guard against collisions
+    let feature_hash = fnv1a(feature.as_bytes());
+    let fn_publish_feature = match get_export(instance, "__watt_publish_feature") {
+        Ok(ExternVal::Func(f)) => f,
+        _ => unimplemented!("__watt_publish_feature not found"),
+    };
+    let arg = Value::I32(feature_hash);
+
+    call(store, fn_publish_feature, vec![arg]);
 }
 
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
@@ -59,10 +93,14 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
 
         let args: Vec<Value> = raws
             .into_iter()
-            .map(|raw| call(state, exports.raw_to_token_stream, vec![raw]))
+            .map(|raw| call(&mut state.store, exports.raw_to_token_stream, vec![raw]).unwrap())
             .collect();
-        let output = call(state, exports.main, args);
-        let raw = call(state, exports.token_stream_into_raw, vec![output]);
+        let output = call(&mut state.store, exports.main, args).unwrap();
+        let raw = call(
+            &mut state.store,
+            exports.token_stream_into_raw,
+            vec![output],
+        ).unwrap();
         let handle = match raw {
             Value::I32(handle) => handle,
             _ => unimplemented!("unexpected macro return type"),
@@ -99,11 +137,14 @@ impl Exports {
     }
 }
 
-fn call(state: &mut ThreadState, func: FuncAddr, args: Vec<Value>) -> Value {
-    match invoke_func(&mut state.store, func, args) {
+fn call(store: &mut Store, func: FuncAddr, args: Vec<Value>) -> Option<Value> {
+    match invoke_func(store, func, args) {
         Ok(ret) => {
-            assert_eq!(ret.len(), 1);
-            ret.into_iter().next().unwrap()
+            match ret.len() {
+                0 => return None,
+                1 => ret.into_iter().next(),
+                _ => panic!("wasm returned more values than expected")
+            }
         }
         Err(err) => panic!("{:?}", err),
     }

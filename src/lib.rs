@@ -197,6 +197,7 @@ mod runtime;
 mod data;
 mod decode;
 mod encode;
+mod features;
 mod import;
 mod sym;
 
@@ -218,6 +219,7 @@ use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 pub struct WasmMacro {
     wasm: &'static [u8],
     id: AtomicUsize,
+    features: &'static [&'static str],
 }
 
 impl WasmMacro {
@@ -232,8 +234,18 @@ impl WasmMacro {
     /// # };
     /// ```
     pub const fn new(wasm: &'static [u8]) -> WasmMacro {
+        const EMPTY: &[&str] = &[];
+        WasmMacro::new_with_features(wasm, EMPTY)
+    }
+
+    #[doc(hidden)]
+    pub const fn new_with_features(
+        wasm: &'static [u8],
+        features: &'static [&'static str],
+    ) -> WasmMacro {
         WasmMacro {
             wasm,
+            features,
             id: AtomicUsize::new(0),
         }
     }

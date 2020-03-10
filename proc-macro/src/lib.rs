@@ -7,6 +7,9 @@ mod encode;
 mod ffi;
 mod rc;
 
+// FIXME: this is just hacked onto watt proc-macro shim because it's necessarily already in the wasm
+pub mod features;
+
 use crate::rc::Rc;
 use std::char;
 use std::cmp::Ordering;

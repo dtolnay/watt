@@ -10,7 +10,14 @@ pub extern "C" fn demo(input: TokenStream) -> TokenStream {
     };
 
     let ident = input.ident;
-    let message = format!("Hello from WASM! My name is {}.", ident);
+    let mut message = format!("Hello from WASM! My name is {}.", ident);
+
+    if proc_macro2::features::check("feat_a") {
+        message.push_str(" feat_a is enabled.");
+    }
+    if proc_macro2::features::check("feat_b") {
+        message.push_str(" feat_b is enabled.");
+    }
 
     quote! {
         impl #ident {
