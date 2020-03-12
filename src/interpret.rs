@@ -46,7 +46,7 @@ impl ThreadState {
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     STATE.with(|state| {
         let state = &mut state.borrow_mut();
-        let flags = instance.flags().iter().copied().collect();
+        let flags = instance.flags().iter().cloned().collect();
         let instance = state.instance(instance);
         let exports = Exports::collect(instance, fun);
 
