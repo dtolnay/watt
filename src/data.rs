@@ -1,6 +1,7 @@
 use proc_macro::{Literal, Span, TokenStream};
 use std::cell::RefCell;
 use std::ops::{Index, IndexMut};
+use std::collections::BTreeMap;
 
 thread_local! {
     static DATA: RefCell<Data> = RefCell::new(Data::default());
@@ -13,6 +14,7 @@ pub struct Data {
     pub tokenstream: Collection<TokenStream>,
     pub literal: Collection<Literal>,
     pub span: Collection<Span>,
+    pub flags: BTreeMap<&'static str, bool>,
 }
 
 impl Data {

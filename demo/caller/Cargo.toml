@@ -7,3 +7,7 @@ publish = false
 
 [dependencies]
 wa-demo = { path = "../wa" }
+
+[features]
+feat_a = ["wa-demo/feat_a"]
+feat_b = ["wa-demo/feat_b"]

@@ -217,6 +217,7 @@ use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 /// ```
 pub struct WasmMacro {
     wasm: &'static [u8],
+    flags: &'static [(&'static str, bool)],
     id: AtomicUsize,
 }
 
@@ -232,8 +233,18 @@ impl WasmMacro {
     /// # };
     /// ```
     pub const fn new(wasm: &'static [u8]) -> WasmMacro {
+        const EMPTY: &[(&str, bool)] = &[];
+        WasmMacro::new_with_flags(wasm, EMPTY)
+    }
+
+    #[doc(hidden)]
+    pub const fn new_with_flags(
+        wasm: &'static [u8],
+        flags: &'static [(&'static str, bool)],
+    ) -> WasmMacro {
         WasmMacro {
             wasm,
+            flags,
             id: AtomicUsize::new(0),
         }
     }
@@ -365,4 +376,19 @@ impl WasmMacro {
             .compare_exchange(0, id, SeqCst, SeqCst)
             .unwrap_or_else(|id| id)
     }
+
+    fn flags(&self) -> &[(&'static str, bool)] {
+        &self.flags
+    }
+}
+
+#[macro_export]
+#[allow(non_snake_case)]
+macro_rules! WasmMacro {
+    ($wasm:expr, $($flag:expr),* $(,)?) => {
+        $crate::WasmMacro::new_with_flags(
+            $wasm,
+            &[$(($flag, cfg!(feature = $flag))),*],
+        )
+    };
 }

@@ -8,6 +8,8 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "token_stream_parse" => mem_func2(sym::token_stream_parse, store),
         "literal_to_string" => func1(sym::literal_to_string, store),
 
+        "query_feature_flag" => mem_func2(sym::query_feature_flag, store),
+
         "string_new" => mem_func2(sym::string_new, store),
         "string_len" => func1(sym::string_len, store),
         "string_read" => mem_func2(sym::string_read, store),

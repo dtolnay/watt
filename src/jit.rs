@@ -49,12 +49,14 @@ impl ThreadState {
 pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
+        let flags = instance.flags().iter().copied().collect();
         let (module, instance) = state.instance(instance);
         let instance_exports = instance.exports();
         let exports = Exports::collect(module, &instance_exports, fun);
 
         let _guard = Data::guard();
         let raws = Data::with(|d| {
+            d.flags = flags;
             inputs
                 .into_iter()
                 .map(|input| Val::i32(d.tokenstream.push(input) as i32))

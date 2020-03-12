@@ -10,3 +10,7 @@ proc-macro = true
 
 [dependencies]
 watt = "0.3"
+
+[features]
+feat_a = []
+feat_b = []

@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use watt::WasmMacro;
 
-static MACRO: WasmMacro = WasmMacro::new(WASM);
+static MACRO: WasmMacro = WasmMacro!(WASM, "feat_a", "feat_b");
 static WASM: &[u8] = include_bytes! {
     "../../impl/target/wasm32-unknown-unknown/release/watt_demo.wasm"
 };

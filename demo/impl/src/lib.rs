@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
+use watt_feature_passthrough::query_feature_flag;
 
 #[no_mangle]
 pub extern "C" fn demo(input: TokenStream) -> TokenStream {
@@ -10,7 +11,14 @@ pub extern "C" fn demo(input: TokenStream) -> TokenStream {
     };
 
     let ident = input.ident;
-    let message = format!("Hello from WASM! My name is {}.", ident);
+    let mut message = format!("Hello from WASM! My name is {}.", ident);
+
+    if query_feature_flag("feat_a").unwrap() {
+        message.push_str(" feat_a is enabled.");
+    }
+    if query_feature_flag("feat_b").unwrap() {
+        message.push_str(" feat_a is enabled.");
+    }
 
     quote! {
         impl #ident {

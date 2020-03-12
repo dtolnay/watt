@@ -1,6 +1,20 @@
 use crate::data::Data;
 use std::str;
 
+pub fn query_feature_flag(memory: &mut [u8], ptr: u32, len: u32) -> u32 {
+    Data::with(|d| {
+        let len = len as usize;
+        let ptr = ptr as usize;
+        let bytes = &memory[ptr..ptr + len];
+        let string = str::from_utf8(bytes).expect("non-utf8");
+        match d.flags.get(string) {
+            Some(&false) => 0,
+            Some(&true) => 1,
+            None => (-1i32) as u32,
+        }
+    })
+}
+
 pub fn literal_to_string(literal: u32) -> u32 {
     Data::with(|d| {
         let string = d.literal[literal].to_string();

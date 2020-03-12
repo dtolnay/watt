@@ -1,0 +1,9 @@
+[package]
+name = "watt-feature-passthrough"
+version = "0.1.0"
+edition = "2018"
+publish = false
+
+authors = ["Christopher Durham (CAD97) <cad97@cad97.com>"]
+
+[dependencies]

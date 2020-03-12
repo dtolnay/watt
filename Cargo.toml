@@ -22,7 +22,7 @@ include = [
 travis-ci = { repository = "dtolnay/watt" }
 
 [workspace]
-members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
+members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro", "watt-feature-passthrough"]
 
 [patch.crates-io]
 watt = { path = "." }
