@@ -26,3 +26,6 @@ members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
 
 [patch.crates-io]
 watt = { path = "." }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
