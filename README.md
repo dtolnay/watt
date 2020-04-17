@@ -46,49 +46,56 @@ watt = "0.3"
 ## Getting started
 
 Start by implementing and testing your proc macro as you normally would, using
-whatever dependencies you want (syn, quote, etc). You will end up with something
-that looks like:
-
-```rust
-extern crate proc_macro;
-
-use proc_macro::TokenStream;
-
-#[proc_macro]
-pub fn my_macro(input: TokenStream) -> TokenStream {
-    /* ... */
-}
-```
-
-`#[proc_macro_derive]` and `#[proc_macro_attribute]` are supported as well;
-everything is analogous to what will be shown here for `#[proc_macro]`.
-
-When your macro is ready, there are just a few changes we need to make to the
-signature and the Cargo.toml. In your lib.rs, change each of your macro entry
-points to a no\_mangle extern "C" function, and change the TokenStream in the
-signature from proc\_macro to proc\_macro2.
-
-It will look like:
-
-```rust
-use proc_macro2::TokenStream;
-
-#[no_mangle]
-pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
-    /* same as before */
-}
-```
-
-Now in your macro's Cargo.toml which used to contain this:
+whatever dependencies you want (syn, quote, etc). Let's say you made a crate
+`foo-macros` that exports a proc macro named `bar`, like this:
 
 ```toml
+# foo-macros/Cargo.toml
+
+[package]
+name = "foo-macros"
+
+...
+
 [lib]
 proc-macro = true
 ```
 
-change it instead to say:
+```rust
+// foo-macros/src/lib.rs
+
+use proc_macro::TokenStream;
+
+#[proc_macro]
+pub fn bar(input: TokenStream) -> TokenStream {
+    /* ... */
+}
+```
+
+(`#[proc_macro_derive]` and `#[proc_macro_attribute]` are supported as well;
+everything is analogous to what will be shown here for `#[proc_macro]`.)
+
+When your macro is ready, there are just a few changes you need to make to
+the macro function signatures and the `Cargo.toml`.
+
+First, rename your crate to something like `foo-macros-impl`.
+This crate will be compiled to Wasm, so change its `Cargo.toml` to make it
+a `cdylib` crate instead of a proc macro crate. Also add a dependency on
+the `proc-macro2` crate if you didn't already have it, and patch it to
+come from this repository instead of crates.io. Your `Cargo.toml` will now
+look like this:
 
 ```toml
+# foo-macros-impl/Cargo.toml
+
+[package]
+name = "foo-macros-impl"
+
+[dependencies]
+proc-macro2 = "..."
+
+...
+
 [lib]
 crate-type = ["cdylib"]
 
@@ -96,43 +103,68 @@ crate-type = ["cdylib"]
 proc-macro2 = { git = "https://github.com/dtolnay/watt" }
 ```
 
-This crate will be the binary that we compile to Wasm. Compile it by running:
+Next, in your `lib.rs`, change each of the macro entry points to
+a `#[no_mangle] extern "C"` function, and change the `TokenStream` in
+the signatures from `proc_macro` to `proc_macro2`:
+
+```rust
+// foo-macros-impl/src/lib.rs
+
+use proc_macro2::TokenStream;
+
+#[no_mangle]
+pub extern "C" fn bar(input: TokenStream) -> TokenStream {
+    /* same as before */
+}
+```
+
+Compile `foo-macros-impl` by running:
 
 ```console
 $ cargo build --release --target wasm32-unknown-unknown
 ```
 
-Next we need to make a small proc-macro shim crate to hand off the compiled Wasm
-bytes into the Watt runtime. In a new Cargo.toml, put:
+You will now have a `foo_macros_impl.wasm` file under
+`foo-macros-impl/target/wasm32-unknown-unknown/release`
+
+Now make a new proc macro crate named `foo-macros`. This is the crate that
+you would publish to crates.io; it will act as a shim around
+the `foo-macros-impl` Wasm module by handing the module's bytes to
+the Watt runtime. Add a dependency on `watt` to this new crate, and redefine
+each of the proc macros that the original `foo-macros` contained.
 
 ```toml
-[lib]
-proc-macro = true
+# foo-macros/Cargo.toml
+
+[package]
+name = "foo-macros"
 
 [dependencies]
 watt = "0.3"
+
+[lib]
+proc-macro = true
 ```
 
-And in its src/lib.rs put:
-
 ```rust
-extern crate proc_macro;
+// foo-macros/src/lib.rs
 
 use proc_macro::TokenStream;
 use watt::WasmMacro;
 
 static MACRO: WasmMacro = WasmMacro::new(WASM);
-static WASM: &[u8] = include_bytes!("my_macro.wasm");
+static WASM: &[u8] = include_bytes!("foo_macros_impl.wasm");
 
 #[proc_macro]
-pub fn my_macro(input: TokenStream) -> TokenStream {
-    MACRO.proc_macro("my_macro", input)
+pub fn bar(input: TokenStream) -> TokenStream {
+    MACRO.proc_macro("bar", input)
 }
 ```
 
-Finally, copy the compiled Wasm binary from
-target/wasm32-unknown-unknown/release/my_macro.wasm under your implementation
-crate, to the src directory of your shim crate, and it's ready to publish!
+Finally, copy the `foo_macros_impl.wasm` file to `foo-macros/src/`,
+and verify that `foo-macros` compiles succesfully.
+
+`foo-macros` is now ready to be published!
 
 <br>
 
