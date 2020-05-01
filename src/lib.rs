@@ -105,7 +105,9 @@
 //! watt = "0.3"
 //! ```
 //!
-//! And in its src/lib.rs put:
+//! And in its src/lib.rs, define real proc macros corresponding to each of the
+//! ones previously defined as no\_mangle extern "C" functions in the other
+//! crate:
 //!
 //! ```
 //! # const IGNORE: &str = stringify! {
