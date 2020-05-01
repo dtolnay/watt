@@ -53,7 +53,7 @@ that looks like:
 use proc_macro::TokenStream;
 
 #[proc_macro]
-pub fn my_macro(input: TokenStream) -> TokenStream {
+pub fn the_macro(input: TokenStream) -> TokenStream {
     /* ... */
 }
 ```
@@ -72,7 +72,7 @@ It will look like:
 use proc_macro2::TokenStream;
 
 #[no_mangle]
-pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
+pub extern "C" fn the_macro(input: TokenStream) -> TokenStream {
     /* same as before */
 }
 ```
@@ -80,6 +80,8 @@ pub extern "C" fn my_macro(input: TokenStream) -> TokenStream {
 Now in your macro's Cargo.toml which used to contain this:
 
 ```toml
+# my_macros/Cargo.toml
+
 [lib]
 proc-macro = true
 ```
@@ -121,16 +123,16 @@ use proc_macro::TokenStream;
 use watt::WasmMacro;
 
 static MACRO: WasmMacro = WasmMacro::new(WASM);
-static WASM: &[u8] = include_bytes!("my_macro.wasm");
+static WASM: &[u8] = include_bytes!("my_macros.wasm");
 
 #[proc_macro]
-pub fn my_macro(input: TokenStream) -> TokenStream {
-    MACRO.proc_macro("my_macro", input)
+pub fn the_macro(input: TokenStream) -> TokenStream {
+    MACRO.proc_macro("the_macro", input)
 }
 ```
 
 Finally, copy the compiled Wasm binary from
-target/wasm32-unknown-unknown/release/my_macro.wasm under your implementation
+target/wasm32-unknown-unknown/release/my_macros.wasm under your implementation
 crate, to the src directory of your shim crate, and it's ready to publish!
 
 <br>
