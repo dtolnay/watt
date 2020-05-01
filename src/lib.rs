@@ -40,8 +40,6 @@
 //!
 //! ```
 //! # const IGNORE: &str = stringify! {
-//! extern crate proc_macro;
-//!
 //! use proc_macro::TokenStream;
 //!
 //! #[proc_macro]
@@ -111,8 +109,6 @@
 //!
 //! ```
 //! # const IGNORE: &str = stringify! {
-//! extern crate proc_macro;
-//!
 //! use proc_macro::TokenStream;
 //! use watt::WasmMacro;
 //!
@@ -257,8 +253,6 @@ impl WasmMacro {
     ///
     /// ```
     /// # const IGNORE: &str = stringify! {
-    /// extern crate proc_macro;
-    ///
     /// use proc_macro::TokenStream;
     /// use watt::WasmMacro;
     ///
@@ -294,8 +288,6 @@ impl WasmMacro {
     ///
     /// ```
     /// # const IGNORE: &str = stringify! {
-    /// extern crate proc_macro;
-    ///
     /// use proc_macro::TokenStream;
     /// use watt::WasmMacro;
     ///
@@ -331,8 +323,6 @@ impl WasmMacro {
     ///
     /// ```
     /// # const IGNORE: &str = stringify! {
-    /// extern crate proc_macro;
-    ///
     /// use proc_macro::TokenStream;
     /// use watt::WasmMacro;
     ///

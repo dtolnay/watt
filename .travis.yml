@@ -4,7 +4,7 @@ rust:
   - nightly
   - beta
   - stable
-  - 1.35.0
+  - 1.42.0
 
 script:
   - rustup target add wasm32-unknown-unknown
@@ -13,3 +13,9 @@ script:
   - cargo test --manifest-path runtime/tests/Cargo.toml
   - cargo test --manifest-path proc-macro/Cargo.toml
   - WATT_JIT=1 cargo check
+
+matrix:
+  include:
+    - name: Minimum rustc
+      rust: 1.35.0
+      script: cargo check

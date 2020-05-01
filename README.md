@@ -50,8 +50,6 @@ whatever dependencies you want (syn, quote, etc). You will end up with something
 that looks like:
 
 ```rust
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 
 #[proc_macro]
@@ -116,8 +114,6 @@ watt = "0.3"
 And in its src/lib.rs put:
 
 ```rust
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 use watt::WasmMacro;
 
