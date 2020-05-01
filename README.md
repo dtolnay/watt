@@ -101,7 +101,9 @@ $ cargo build --release --target wasm32-unknown-unknown
 ```
 
 Next we need to make a small proc-macro shim crate to hand off the compiled Wasm
-bytes into the Watt runtime. In a new Cargo.toml, put:
+bytes into the Watt runtime. It's fine to give this the same crate name as the
+previous crate, since the other one won't be getting published to crates.io. In
+a new Cargo.toml, put:
 
 ```toml
 [lib]

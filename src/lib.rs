@@ -95,7 +95,9 @@
 //! ```
 //!
 //! Next we need to make a small proc-macro shim crate to hand off the compiled
-//! Wasm bytes into the Watt runtime. In a new Cargo.toml, put:
+//! Wasm bytes into the Watt runtime. It's fine to give this the same crate name
+//! as the previous crate, since the other one won't be getting published to
+//! crates.io. In a new Cargo.toml, put:
 //!
 //! ```toml
 //! [lib]
