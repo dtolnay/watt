@@ -18,9 +18,6 @@ include = [
     "src/*",
 ]
 
-[badges]
-travis-ci = { repository = "dtolnay/watt" }
-
 [workspace]
 members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
 
