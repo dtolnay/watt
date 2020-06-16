@@ -119,7 +119,7 @@ fn extern_vals(module: &Module, store: &mut Store) -> Vec<ExternVal> {
 
 fn mk_host_func(import: Import, store: &mut Store) -> ExternVal {
     let (module, name, ref sig) = import;
-    assert_eq!(module, "watt-0.3", "Wasm import from unknown module");
+    assert_eq!(module, "watt-0.4", "Wasm import from unknown module");
     let func = match sig {
         Extern::Func(func) => func,
         Extern::Table(_) | Extern::Memory(_) | Extern::Global(_) => {

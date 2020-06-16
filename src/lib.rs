@@ -112,7 +112,7 @@
 //! proc-macro = true
 //!
 //! [dependencies]
-//! watt = "0.3"
+//! watt = "0.4"
 //! ```
 //!
 //! And in its src/lib.rs, define real proc macros corresponding to each of the
