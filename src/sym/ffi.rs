@@ -80,7 +80,7 @@ impl WasmArg for Spacing {
 
 impl WasmArg for bool {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
-        !matches!(interp.pop().unwrap(), Value::I32(0))
+        interp.pop().unwrap() != Value::I32(0)
     }
 }
 
