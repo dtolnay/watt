@@ -5,7 +5,7 @@ use proc_macro::Diagnostic;
 
 #[cfg(feature = "nightly")]
 pub fn drop_diagnostic_handle(handle: Handle<Diagnostic>) {
-    todo!()
+    unimplemented!("TODO")
 }
 
 #[cfg(not(feature = "nightly"))]

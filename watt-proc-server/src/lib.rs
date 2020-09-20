@@ -7,7 +7,7 @@ extern crate proc_macro;
 macro_rules! custom_todo {
     () => {
         crate::panic::invoke_hint_panic(std::file!(), std::line!());
-        todo!();
+        unimplemented!("TODO");
     };
 }
 

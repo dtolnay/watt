@@ -5,7 +5,7 @@ use proc_macro::SourceFile;
 
 #[cfg(feature = "nightly")]
 pub fn clone_source_file_handle(_: Handle<SourceFile>) -> Handle<SourceFile> {
-    todo!()
+    unimplemented!("TODO")
 }
 
 #[cfg(not(feature = "nightly"))]
@@ -15,7 +15,7 @@ pub fn clone_source_file_handle(_: u32) -> u32 {
 
 #[cfg(feature = "nightly")]
 pub fn drop_source_file_handle(_: Handle<SourceFile>) {
-    todo!()
+    unimplemented!("TODO")
 }
 
 #[cfg(not(feature = "nightly"))]
