@@ -19,7 +19,11 @@ include = [
 ]
 
 [workspace]
-members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
+members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro", "watt-proc-server"]
+
+[features]
+default = []
+nightly = []
 
 [patch.crates-io]
 watt = { path = "." }

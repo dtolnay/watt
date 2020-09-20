@@ -1,10 +1,11 @@
-use super::ast::*;
-use super::ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp};
-use super::runtime::*;
-use super::types;
-use super::values::Value;
-use std::mem;
-use std::rc::Rc;
+use super::{
+    ast::*,
+    ops::{FloatDemoteOp, FloatOp, FloatPromoteOp, IntOp},
+    runtime::*,
+    types,
+    values::Value,
+};
+use std::{mem, rc::Rc};
 
 /// A struct storing the state of the current interpreted
 pub struct Interpreter<'a> {
@@ -517,8 +518,7 @@ impl<'a> Interpreter<'a> {
 
     /// Dispatch a ConvertOp
     fn cvtop(&mut self, op: &ConvertOp) -> IntResult {
-        use super::types::Value as tv;
-        use super::types::{Float, Int};
+        use super::types::{Float, Int, Value as tv};
 
         let c = self.stack.pop().unwrap();
         let cls = |&op, &c| {
@@ -887,8 +887,7 @@ impl<'a> Interpreter<'a> {
 
     /// Load memory (dispatcher)
     fn load(&mut self, memop: &LoadOp) -> IntResult {
-        use super::types::Value as Tv;
-        use super::types::{Float, Int};
+        use super::types::{Float, Int, Value as Tv};
 
         let mem = &self.mems[self.frame.module().mem_addrs[0]];
         let offset = match self.stack.pop().unwrap() {
@@ -956,8 +955,7 @@ impl<'a> Interpreter<'a> {
 
     /// Store memory (dispatcher)
     fn store(&mut self, memop: &StoreOp) -> IntResult {
-        use super::types::Value as Tv;
-        use super::types::{Float, Int};
+        use super::types::{Float, Int, Value as Tv};
 
         let mem = &mut self.mems[self.frame.module().mem_addrs[0]];
         let c = self.stack.pop().unwrap();

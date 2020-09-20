@@ -1,0 +1,7 @@
+[package]
+name = "watt-proc-server"
+version = "0.1.0"
+authors = ["Tom Dohrmann <erbse.13@gmx.de>"]
+edition = "2018"
+
+[dependencies]

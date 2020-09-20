@@ -184,6 +184,8 @@
 //!
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
+#![cfg_attr(feature = "nightly", feature(proc_macro_diagnostic))]
+
 extern crate proc_macro;
 
 #[cfg(not(jit))]
@@ -203,8 +205,6 @@ mod exec;
 mod runtime;
 
 mod data;
-mod decode;
-mod encode;
 mod import;
 mod sym;
 

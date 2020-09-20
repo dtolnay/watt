@@ -12,8 +12,10 @@ crate-type = ["cdylib"]
 proc-macro2 = "1.0"
 quote = "1.0"
 syn = "1.0"
+watt-proc-server = { path = "../../watt-proc-server" }
 
 [workspace]
 
 [patch.crates-io]
-proc-macro2 = { path = "../../proc-macro" }
+proc-macro2 = { git = "https://github.com/Freax13/proc-macro2", branch = "readd-wasm" }
+syn = { git = "https://github.com/Freax13/syn", branch = "readd-proc-macro-wasm" }

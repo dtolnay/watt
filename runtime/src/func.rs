@@ -30,6 +30,18 @@ impl WasmRet for () {
     }
 }
 
+pub fn func0<R, F>(func: F, _store: &Store) -> HostFunc
+where
+    R: WasmRet,
+    F: Fn() -> R + 'static,
+{
+    Box::new(move |interp| {
+        let ret = func();
+        R::push(interp, ret);
+        None
+    })
+}
+
 pub fn func1<A, R, F>(func: F, _store: &Store) -> HostFunc
 where
     A: WasmArg,
@@ -39,6 +51,40 @@ where
     Box::new(move |interp| {
         let a = A::pop(interp);
         let ret = func(a);
+        R::push(interp, ret);
+        None
+    })
+}
+
+pub fn func2<A, B, R, F>(func: F, _store: &Store) -> HostFunc
+where
+    A: WasmArg,
+    B: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B) -> R + 'static,
+{
+    Box::new(move |interp| {
+        let b = B::pop(interp);
+        let a = A::pop(interp);
+        let ret = func(a, b);
+        R::push(interp, ret);
+        None
+    })
+}
+
+pub fn func3<A, B, C, R, F>(func: F, _store: &Store) -> HostFunc
+where
+    A: WasmArg,
+    B: WasmArg,
+    C: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B, C) -> R + 'static,
+{
+    Box::new(move |interp| {
+        let c = C::pop(interp);
+        let b = B::pop(interp);
+        let a = A::pop(interp);
+        let ret = func(a, b, c);
         R::push(interp, ret);
         None
     })
