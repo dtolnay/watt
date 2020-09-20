@@ -2,8 +2,6 @@ use proc_macro::{token_stream::IntoIter, Group, Ident, Literal, Punct, Span, Tok
 use std::{
     cell::RefCell,
     collections::HashMap,
-    fmt,
-    fmt::Debug,
     hash::{Hash, Hasher},
     marker::PhantomData,
     num::NonZeroU32,
@@ -87,12 +85,6 @@ impl<T> Eq for Handle<T> {}
 impl<T> Hash for Handle<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state)
-    }
-}
-
-impl<T> Debug for Handle<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}-{}", std::any::type_name::<T>(), self.id)
     }
 }
 
