@@ -12,7 +12,7 @@ extern "C" {
 
 impl Punct for Server {
     fn new(&mut self, c: char, s: Spacing) -> PunctHandle {
-        let c = String::from(c);
+        let c = c.to_string();
         unsafe { punct_new(c.into(), s.into()) }
     }
 
