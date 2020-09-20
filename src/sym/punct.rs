@@ -12,7 +12,7 @@ pub fn punct_new(c: Handle<String>, spacing: Spacing) -> Handle<Punct> {
 pub fn punct_as_char(handle: Handle<Punct>) -> Handle<String> {
     Data::with(|d| {
         let c = d.punct[handle].as_char();
-        d.string.push(String::from(c))
+        d.string.push(c.to_string())
     })
 }
 
