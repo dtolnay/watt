@@ -1,28 +1,49 @@
+#[cfg(feature = "proc-macro-server")]
 mod diagnostic;
+#[cfg(feature = "proc-macro-server")]
 mod ffi;
+#[cfg(feature = "proc-macro-server")]
 mod freefunctions;
+#[cfg(feature = "proc-macro-server")]
 mod group;
+#[cfg(feature = "proc-macro-server")]
 mod ident;
+#[cfg(feature = "proc-macro-server")]
 mod literal;
+#[cfg(feature = "proc-macro-server")]
 mod multispan;
+#[cfg(feature = "proc-macro-server")]
 mod punct;
+#[cfg(feature = "proc-macro-server")]
 mod sourcefile;
+#[cfg(feature = "proc-macro-server")]
 mod span;
 mod string;
 mod tokenstream;
+#[cfg(feature = "proc-macro-server")]
 mod tokenstreamiter;
 
+#[cfg(feature = "proc-macro-server")]
 pub use diagnostic::*;
+#[cfg(feature = "proc-macro-server")]
 pub use freefunctions::*;
+#[cfg(feature = "proc-macro-server")]
 pub use group::*;
+#[cfg(feature = "proc-macro-server")]
 pub use ident::*;
+#[cfg(feature = "proc-macro-server")]
 pub use literal::*;
+#[cfg(feature = "proc-macro-server")]
 pub use multispan::*;
+#[cfg(feature = "proc-macro-server")]
 pub use punct::*;
+#[cfg(feature = "proc-macro-server")]
 pub use sourcefile::*;
+#[cfg(feature = "proc-macro-server")]
 pub use span::*;
 pub use string::*;
 pub use tokenstream::*;
+#[cfg(feature = "proc-macro-server")]
 pub use tokenstreamiter::*;
 
 use crate::data::{Data, Handle};

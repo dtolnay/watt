@@ -23,7 +23,8 @@ members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro", "watt-proc-s
 
 [features]
 default = []
-nightly = []
+proc-macro-server = []
+nightly = ["proc-macro-server"]
 
 [patch.crates-io]
 watt = { path = "." }
