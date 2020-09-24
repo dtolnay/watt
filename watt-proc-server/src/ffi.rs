@@ -1,5 +1,7 @@
+use std::ops::Bound;
+
 use crate::{GroupHandle, IdentHandle, LiteralHandle, PunctHandle};
-use proc_macro::{bridge::TokenTree, Delimiter, Spacing};
+use proc_macro::{bridge::TokenTree, Delimiter, Level, LineColumn, Spacing};
 
 #[repr(u8)]
 #[derive(Debug)]
@@ -92,6 +94,88 @@ impl From<Delimiter> for FFIDelimiter {
             Delimiter::Brace => FFIDelimiter::Brace,
             Delimiter::Bracket => FFIDelimiter::Bracket,
             Delimiter::None => FFIDelimiter::None,
+        }
+    }
+}
+
+#[repr(C)]
+pub struct FFILineColumn {
+    line: u32,
+    column: u32,
+}
+
+impl From<FFILineColumn> for LineColumn {
+    fn from(lc: FFILineColumn) -> Self {
+        LineColumn {
+            line: lc.line as usize,
+            column: lc.column as usize,
+        }
+    }
+}
+
+impl From<LineColumn> for FFILineColumn {
+    fn from(lc: LineColumn) -> Self {
+        FFILineColumn {
+            line: lc.line as u32,
+            column: lc.column as u32,
+        }
+    }
+}
+
+#[repr(u8)]
+pub enum FFILevel {
+    Error,
+    Warning,
+    Note,
+    Help,
+}
+
+impl From<FFILevel> for Level {
+    fn from(level: FFILevel) -> Self {
+        match level {
+            FFILevel::Error => Level::Error,
+            FFILevel::Warning => Level::Warning,
+            FFILevel::Note => Level::Note,
+            FFILevel::Help => Level::Help,
+        }
+    }
+}
+
+impl From<Level> for FFILevel {
+    fn from(level: Level) -> Self {
+        match level {
+            Level::Error => FFILevel::Error,
+            Level::Warning => FFILevel::Warning,
+            Level::Note => FFILevel::Note,
+            Level::Help => FFILevel::Help,
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[repr(u8)]
+pub enum FFIBound {
+    Included(u32),
+    Excluded(u32),
+    Unbounded,
+}
+
+impl From<FFIBound> for Bound<usize> {
+    fn from(bound: FFIBound) -> Self {
+        match bound {
+            FFIBound::Included(n) => Bound::Included(n as usize),
+            FFIBound::Excluded(n) => Bound::Excluded(n as usize),
+            FFIBound::Unbounded => Bound::Unbounded,
+        }
+    }
+}
+
+impl From<Bound<usize>> for FFIBound {
+    fn from(bound: Bound<usize>) -> Self {
+        match bound {
+            Bound::Included(n) => FFIBound::Included(n as u32),
+            Bound::Excluded(n) => FFIBound::Excluded(n as u32),
+            Bound::Unbounded => FFIBound::Unbounded,
         }
     }
 }

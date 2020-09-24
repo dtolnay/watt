@@ -3,7 +3,7 @@ use proc_macro::{Punct, Spacing, Span};
 
 pub fn punct_new(c: Handle<String>, spacing: Spacing) -> Handle<Punct> {
     Data::with(|d| {
-        let c = d.string.take(c).unwrap();
+        let c = d.string.take(c);
         let c = c.chars().next().unwrap();
         d.punct.push(Punct::new(c, spacing))
     })

@@ -1,5 +1,6 @@
 mod diagnostic;
 mod ffi;
+mod freefunctions;
 mod group;
 mod ident;
 mod literal;
@@ -12,6 +13,7 @@ mod tokenstream;
 mod tokenstreamiter;
 
 pub use diagnostic::*;
+pub use freefunctions::*;
 pub use group::*;
 pub use ident::*;
 pub use literal::*;

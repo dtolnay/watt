@@ -7,6 +7,7 @@ use proc_macro::bridge::{server::TokenStream, TokenTree};
 #[link(wasm_import_module = "watt-0.4")]
 extern "C" {
     fn token_stream_new() -> TokenStreamHandle;
+    fn token_stream_is_empty(handle: TokenStreamHandle) -> bool;
     fn token_stream_from_str(handle: StringHandle) -> TokenStreamHandle;
     fn token_stream_to_string(handle: TokenStreamHandle) -> StringHandle;
     fn token_stream_from_token_tree(group: FFITokenTree) -> TokenStreamHandle;
@@ -18,8 +19,8 @@ impl TokenStream for Server {
         unsafe { token_stream_new() }
     }
 
-    fn is_empty(&mut self, _: &TokenStreamHandle) -> bool {
-        crate::custom_todo!();
+    fn is_empty(&mut self, handle: &TokenStreamHandle) -> bool {
+        unsafe { token_stream_is_empty(handle.to_owned()) }
     }
 
     fn from_str(&mut self, s: &str) -> TokenStreamHandle {

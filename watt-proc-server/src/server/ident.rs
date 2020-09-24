@@ -5,6 +5,7 @@ use proc_macro::bridge::server::Ident;
 extern "C" {
     fn ident_new(name: StringHandle, span: SpanHandle, raw: bool) -> IdentHandle;
     fn ident_span(handle: IdentHandle) -> SpanHandle;
+    fn ident_with_span(handle: IdentHandle, span: SpanHandle) -> IdentHandle;
 }
 
 impl Ident for Server {
@@ -17,7 +18,7 @@ impl Ident for Server {
         unsafe { ident_span(handle) }
     }
 
-    fn with_span(&mut self, _: IdentHandle, _: SpanHandle) -> IdentHandle {
-        crate::custom_todo!();
+    fn with_span(&mut self, handle: IdentHandle, span: SpanHandle) -> IdentHandle {
+        unsafe { ident_with_span(handle, span) }
     }
 }

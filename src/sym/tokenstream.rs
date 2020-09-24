@@ -18,9 +18,13 @@ pub fn token_stream_new() -> Handle<TokenStream> {
     Data::with(|d| d.tokenstream.push(TokenStream::new()))
 }
 
+pub fn token_stream_is_empty(handle: Handle<TokenStream>) -> bool {
+    Data::with(|d| d.tokenstream[handle].is_empty())
+}
+
 pub fn token_stream_from_str(s: Handle<String>) -> Handle<TokenStream> {
     Data::with(|d| {
-        let s = d.string.take(s).unwrap();
+        let s = d.string.take(s);
         let tts = s.parse().unwrap();
         d.tokenstream.push(tts)
     })
@@ -39,14 +43,14 @@ pub fn token_stream_from_token_tree(token_tree: TokenTree) -> Handle<TokenStream
 
 pub fn token_stream_into_iter(handle: Handle<TokenStream>) -> Handle<IntoIter> {
     Data::with(|d| {
-        let tt = d.tokenstream.take(handle).unwrap();
+        let tt = d.tokenstream.take(handle);
         d.token_stream_iter.push(tt.into_iter())
     })
 }
 
 pub fn token_stream_push(handle: Handle<TokenStream>, item: Handle<TokenStream>) {
     Data::with(|d| {
-        let item = d.tokenstream.take(item).unwrap();
+        let item = d.tokenstream.take(item);
         d.tokenstream[handle].extend(item)
     })
 }

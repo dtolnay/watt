@@ -90,6 +90,26 @@ where
     })
 }
 
+pub fn func4<A, B, C, D, R, F>(func: F, _store: &Store) -> HostFunc
+where
+    A: WasmArg,
+    B: WasmArg,
+    C: WasmArg,
+    D: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B, C, D) -> R + 'static,
+{
+    Box::new(move |interp| {
+        let d = D::pop(interp);
+        let c = C::pop(interp);
+        let b = B::pop(interp);
+        let a = A::pop(interp);
+        let ret = func(a, b, c, d);
+        R::push(interp, ret);
+        None
+    })
+}
+
 pub fn mem_func2<A, B, R, F>(func: F, _store: &Store) -> HostFunc
 where
     A: WasmArg,

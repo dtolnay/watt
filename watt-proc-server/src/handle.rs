@@ -122,7 +122,10 @@ define_handles!(
     TokenStreamIterHandle: clone_token_stream_iter_handle + drop_token_stream_iter_handle
 );
 
-define_handles!(StringHandle: clone_string + drop_string);
+define_handles!(
+    StringHandle: clone_string + drop_string,
+    BytesHandle: clone_bytes + drop_bytes
+);
 
 pub type TokenStreamBuilderHandle = TokenStreamHandle;
 

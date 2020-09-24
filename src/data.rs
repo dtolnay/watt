@@ -1,4 +1,7 @@
+use crate::runtime::func::{WasmArg, WasmRet};
 use proc_macro::{token_stream::IntoIter, Group, Ident, Literal, Punct, Span, TokenStream};
+#[cfg(feature = "nightly")]
+use proc_macro::{Diagnostic, SourceFile};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -7,8 +10,6 @@ use std::{
     num::NonZeroU32,
     ops::{Index, IndexMut},
 };
-
-use crate::runtime::func::{WasmArg, WasmRet};
 
 thread_local! {
     static DATA: RefCell<Data> = RefCell::new(Data::default());
@@ -25,6 +26,12 @@ pub struct Data {
     pub token_stream_iter: Collection<IntoIter>,
     pub literal: Collection<Literal>,
     pub span: Collection<Span>,
+    #[cfg(feature = "nightly")]
+    pub multi_span: Collection<Vec<Span>>,
+    #[cfg(feature = "nightly")]
+    pub source_file: Collection<SourceFile>,
+    #[cfg(feature = "nightly")]
+    pub diagnostic: Collection<Diagnostic>,
 }
 
 impl Data {
@@ -131,8 +138,13 @@ impl<T> Collection<T> {
         handle
     }
 
-    pub fn take(&mut self, handle: Handle<T>) -> Option<T> {
-        self.data.remove(&handle)
+    pub fn take(&mut self, handle: Handle<T>) -> T {
+        self.data.remove(&handle).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn insert(&mut self, handle: Handle<T>, value: T) {
+        self.data.insert(handle, value);
     }
 }
 
