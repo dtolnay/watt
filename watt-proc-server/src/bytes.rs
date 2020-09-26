@@ -4,7 +4,7 @@ use crate::BytesHandle;
 extern "C" {
     fn bytes_new(ptr: *const u8, len: u32) -> BytesHandle;
     fn bytes_len(handle: BytesHandle) -> u32;
-    fn bytes_copy(handle: BytesHandle, ptr: *mut u8);
+    fn bytes_read(handle: BytesHandle, ptr: *mut u8);
 }
 
 impl<'a> From<&'a [u8]> for BytesHandle {
@@ -23,7 +23,7 @@ impl<'a> From<&'a BytesHandle> for Vec<u8> {
     fn from(s: &'a BytesHandle) -> Self {
         let len = unsafe { bytes_len(s.to_owned()) };
         let mut vec = vec![0; len as usize];
-        unsafe { bytes_copy(s.to_owned(), vec.as_mut_ptr()) };
+        unsafe { bytes_read(s.to_owned(), vec.as_mut_ptr()) };
         vec
     }
 }

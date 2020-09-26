@@ -60,18 +60,29 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
                 .map(|input| Value::I32(d.tokenstream.push(input).id()))
                 .collect()
         });
+        #[cfg(not(feature = "proc-macro-server"))]
+        let args: Vec<Value> = args
+            .into_iter()
+            .map(|raw| call(state, exports.raw_to_token_stream, vec![raw]))
+            .collect();
 
-        let handle = call(state, exports.main, args);
-        let handle = match handle {
+        let output = call(state, exports.main, args);
+        #[cfg(not(feature = "proc-macro-server"))]
+        let output = call(state, exports.token_stream_into_raw, vec![output]);
+        let output = match output {
             Value::I32(handle) => Handle::new(handle),
             _ => unimplemented!("unexpected macro return type"),
         };
-        Data::with(|d| d.tokenstream[handle].clone())
+        Data::with(|d| d.tokenstream[output].clone())
     })
 }
 
 struct Exports {
     main: FuncAddr,
+    #[cfg(not(feature = "proc-macro-server"))]
+    raw_to_token_stream: FuncAddr,
+    #[cfg(not(feature = "proc-macro-server"))]
+    token_stream_into_raw: FuncAddr,
 }
 
 impl Exports {
@@ -80,7 +91,23 @@ impl Exports {
             Ok(ExternVal::Func(main)) => main,
             _ => unimplemented!("unresolved macro: {:?}", entry_point),
         };
-        Exports { main }
+        #[cfg(not(feature = "proc-macro-server"))]
+        let raw_to_token_stream = match get_export(instance, "raw_to_token_stream") {
+            Ok(ExternVal::Func(func)) => func,
+            _ => unimplemented!("raw_to_token_stream not found"),
+        };
+        #[cfg(not(feature = "proc-macro-server"))]
+        let token_stream_into_raw = match get_export(instance, "token_stream_into_raw") {
+            Ok(ExternVal::Func(func)) => func,
+            _ => unimplemented!("token_stream_into_raw not found"),
+        };
+        Exports {
+            main,
+            #[cfg(not(feature = "proc-macro-server"))]
+            raw_to_token_stream,
+            #[cfg(not(feature = "proc-macro-server"))]
+            token_stream_into_raw,
+        }
     }
 }
 

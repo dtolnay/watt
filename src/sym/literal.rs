@@ -1,8 +1,11 @@
+use crate::data::{Data, Handle};
+use proc_macro::Literal;
+#[cfg(feature = "proc-macro-server")]
+use proc_macro::Span;
+#[cfg(feature = "proc-macro-server")]
 use std::ops::Bound;
 
-use crate::data::{Data, Handle};
-use proc_macro::{Literal, Span};
-
+#[cfg(feature = "proc-macro-server")]
 pub fn clone_literal_handle(handle: Handle<Literal>) -> Handle<Literal> {
     Data::with(|d| {
         let cloned = d.literal[handle].clone();
@@ -10,24 +13,29 @@ pub fn clone_literal_handle(handle: Handle<Literal>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn drop_literal_handle(handle: Handle<Literal>) {
     Data::with(|d| {
         d.literal.take(handle);
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_debug_kind(_: Handle<Literal>) -> Handle<String> {
     unimplemented!();
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_symbol(_: Handle<Literal>) -> Handle<String> {
     unimplemented!();
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_suffix(_: Handle<Literal>) -> Option<Handle<String>> {
     unimplemented!();
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_integer(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -40,6 +48,7 @@ pub fn literal_integer(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_typed_integer(s: Handle<String>, ty: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -62,6 +71,7 @@ pub fn literal_typed_integer(s: Handle<String>, ty: Handle<String>) -> Handle<Li
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_float(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -70,6 +80,7 @@ pub fn literal_float(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_f32(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -78,6 +89,7 @@ pub fn literal_f32(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_f64(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -86,6 +98,7 @@ pub fn literal_f64(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_string(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -93,6 +106,7 @@ pub fn literal_string(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_character(s: Handle<String>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.string.take(s);
@@ -101,6 +115,7 @@ pub fn literal_character(s: Handle<String>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_byte_string(s: Handle<Vec<u8>>) -> Handle<Literal> {
     Data::with(|d| {
         let s = d.bytes.take(s);
@@ -108,6 +123,7 @@ pub fn literal_byte_string(s: Handle<Vec<u8>>) -> Handle<Literal> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_span(handle: Handle<Literal>) -> Handle<Span> {
     Data::with(|d| {
         let literal = &d.literal[handle];
@@ -115,6 +131,7 @@ pub fn literal_span(handle: Handle<Literal>) -> Handle<Span> {
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_set_span(handle: Handle<Literal>, span: Handle<Span>) {
     Data::with(|d| {
         let span = d.span[span];
@@ -122,7 +139,7 @@ pub fn literal_set_span(handle: Handle<Literal>, span: Handle<Span>) {
     })
 }
 
-#[cfg(feature = "nightly")]
+#[cfg(all(feature = "proc-macro-server", feature = "nightly"))]
 pub fn literal_subspan(
     handle: Handle<Literal>,
     start: Bound<usize>,
@@ -134,11 +151,19 @@ pub fn literal_subspan(
     })
 }
 
-#[cfg(not(feature = "nightly"))]
+#[cfg(all(feature = "proc-macro-server", not(feature = "nightly")))]
 pub fn literal_subspan(
     _: Handle<Literal>,
     _: Bound<usize>,
     _: Bound<usize>,
 ) -> Option<Handle<Span>> {
     unimplemented!()
+}
+
+#[cfg(not(feature = "proc-macro-server"))]
+pub fn literal_to_string(handle: Handle<Literal>) -> Handle<String> {
+    Data::with(|d| {
+        let s = d.literal[handle].to_string();
+        d.string.push(s)
+    })
 }

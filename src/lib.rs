@@ -216,6 +216,11 @@ mod data;
 mod import;
 mod sym;
 
+#[cfg(not(feature = "proc-macro-server"))]
+mod decode;
+#[cfg(not(feature = "proc-macro-server"))]
+mod encode;
+
 use proc_macro::TokenStream;
 use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 

@@ -1,3 +1,4 @@
+mod bytes;
 #[cfg(feature = "proc-macro-server")]
 mod diagnostic;
 #[cfg(feature = "proc-macro-server")]
@@ -8,7 +9,6 @@ mod freefunctions;
 mod group;
 #[cfg(feature = "proc-macro-server")]
 mod ident;
-#[cfg(feature = "proc-macro-server")]
 mod literal;
 #[cfg(feature = "proc-macro-server")]
 mod multispan;
@@ -23,6 +23,7 @@ mod tokenstream;
 #[cfg(feature = "proc-macro-server")]
 mod tokenstreamiter;
 
+pub use bytes::*;
 #[cfg(feature = "proc-macro-server")]
 pub use diagnostic::*;
 #[cfg(feature = "proc-macro-server")]
@@ -31,7 +32,6 @@ pub use freefunctions::*;
 pub use group::*;
 #[cfg(feature = "proc-macro-server")]
 pub use ident::*;
-#[cfg(feature = "proc-macro-server")]
 pub use literal::*;
 #[cfg(feature = "proc-macro-server")]
 pub use multispan::*;

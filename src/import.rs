@@ -1,8 +1,7 @@
+#[cfg(feature = "proc-macro-server")]
+use crate::runtime::func::{func0, func3, func4};
 use crate::{
-    runtime::{
-        func::{func0, func2, func3, func4},
-        func1, mem_func2, HostFunc, Store,
-    },
+    runtime::{func::func2, func1, mem_func2, HostFunc, Store},
     sym,
 };
 
@@ -71,6 +70,8 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "literal_set_span" => func2(sym::literal_set_span, store),
         #[cfg(feature = "proc-macro-server")]
         "literal_subspan" => func3(sym::literal_subspan, store),
+        #[cfg(not(feature = "proc-macro-server"))]
+        "literal_to_string" => func1(sym::literal_to_string, store),
 
         #[cfg(feature = "proc-macro-server")]
         "clone_source_file_handle" => func1(sym::clone_source_file_handle, store),
@@ -89,7 +90,9 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "token_stream_new" => func0(sym::token_stream_new, store),
         #[cfg(feature = "proc-macro-server")]
         "token_stream_is_empty" => func1(sym::token_stream_is_empty, store),
+        #[cfg(feature = "proc-macro-server")]
         "token_stream_from_str" => func1(sym::token_stream_from_str, store),
+        #[cfg(feature = "proc-macro-server")]
         "token_stream_to_string" => func1(sym::token_stream_to_string, store),
         #[cfg(feature = "proc-macro-server")]
         "token_stream_from_token_tree" => func1(sym::token_stream_from_token_tree, store),
@@ -97,6 +100,12 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "token_stream_into_iter" => func1(sym::token_stream_into_iter, store),
         #[cfg(feature = "proc-macro-server")]
         "token_stream_push" => func2(sym::token_stream_push, store),
+        #[cfg(not(feature = "proc-macro-server"))]
+        "token_stream_serialize" => func1(sym::token_stream_serialize, store),
+        #[cfg(not(feature = "proc-macro-server"))]
+        "token_stream_deserialize" => mem_func2(sym::token_stream_deserialize, store),
+        #[cfg(not(feature = "proc-macro-server"))]
+        "token_stream_parse" => mem_func2(sym::token_stream_parse, store),
 
         #[cfg(feature = "proc-macro-server")]
         "clone_token_stream_iter_handle" => func1(sym::clone_token_stream_iter_handle, store),
@@ -157,17 +166,15 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
 
         "string_new" => mem_func2(sym::string_new, store),
         "string_len" => func1(sym::string_len, store),
-        "string_copy" => mem_func2(sym::string_copy, store),
+        "string_read" => mem_func2(sym::string_read, store),
         "drop_string" => func1(sym::drop_string, store),
 
         #[cfg(feature = "proc-macro-server")]
-        "bytes_new" => mem_func2(sym::string_new, store),
+        "bytes_new" => mem_func2(sym::bytes_new, store),
+        "bytes_len" => func1(sym::bytes_len, store),
+        "bytes_read" => mem_func2(sym::bytes_read, store),
         #[cfg(feature = "proc-macro-server")]
-        "bytes_len" => func1(sym::string_len, store),
-        #[cfg(feature = "proc-macro-server")]
-        "bytes_copy" => mem_func2(sym::string_copy, store),
-        #[cfg(feature = "proc-macro-server")]
-        "drop_bytes" => func1(sym::drop_string, store),
+        "drop_bytes" => func1(sym::drop_bytes, store),
 
         "print_panic" => func1(sym::print_panic, store),
         "hint_panic" => func2(sym::hint_panic, store),
@@ -178,9 +185,7 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
     if cfg!(watt_debug) {
         let name = name.to_owned();
         Box::new(move |i| {
-            if cfg!(watt_debug) {
-                eprintln!("Executing {:?}", name);
-            }
+            eprintln!("Executing {:?}", name);
             f(i)
         })
     } else {

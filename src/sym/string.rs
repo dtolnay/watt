@@ -17,7 +17,7 @@ pub fn string_len(string: Handle<String>) -> u32 {
     })
 }
 
-pub fn string_copy(memory: &mut [u8], string: Handle<String>, ptr: u32) {
+pub fn string_read(memory: &mut [u8], string: Handle<String>, ptr: u32) {
     Data::with(|d| {
         let ptr = ptr as usize;
         let string = &d.string[string];
