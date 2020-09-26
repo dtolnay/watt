@@ -1,4 +1,3 @@
-use crate::runtime::func::{WasmArg, WasmRet};
 use proc_macro::{token_stream::IntoIter, Group, Ident, Literal, Punct, Span, TokenStream};
 #[cfg(feature = "nightly")]
 use proc_macro::{Diagnostic, SourceFile};
@@ -92,34 +91,6 @@ impl<T> Eq for Handle<T> {}
 impl<T> Hash for Handle<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state)
-    }
-}
-
-impl<T> WasmArg for Handle<T> {
-    fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
-        let id: u32 = WasmArg::pop(interp);
-        Handle::new(id)
-    }
-}
-
-impl<T> WasmRet for Handle<T> {
-    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
-        let id: u32 = val.id.into();
-        WasmRet::push(interp, id)
-    }
-}
-
-impl<T> WasmArg for Option<Handle<T>> {
-    fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
-        let id: u32 = WasmArg::pop(interp);
-        NonZeroU32::new(id).map(Into::into).map(Handle::<T>::new)
-    }
-}
-
-impl<T> WasmRet for Option<Handle<T>> {
-    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
-        let id: u32 = val.map(|val| val.id.into()).unwrap_or(0);
-        WasmRet::push(interp, id)
     }
 }
 

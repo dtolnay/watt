@@ -1,12 +1,12 @@
 #[cfg(feature = "proc-macro-server")]
 use crate::runtime::func::{func0, func3, func4};
 use crate::{
-    runtime::{func::func2, func1, mem_func2, HostFunc, Store},
+    runtime::{func1, func2, mem_func2, HostFunc, Store},
     sym,
 };
 
 pub fn host_func(name: &str, store: &Store) -> HostFunc {
-    let f = match name {
+    match name {
         #[cfg(feature = "proc-macro-server")]
         "drop_diagnostic_handle" => func1(sym::drop_diagnostic_handle, store),
         #[cfg(feature = "proc-macro-server")]
@@ -180,15 +180,5 @@ pub fn host_func(name: &str, store: &Store) -> HostFunc {
         "hint_panic" => func2(sym::hint_panic, store),
 
         _ => unreachable!("unresolved import: {:?}", name),
-    };
-
-    if cfg!(watt_debug) {
-        let name = name.to_owned();
-        Box::new(move |i| {
-            eprintln!("Executing {:?}", name);
-            f(i)
-        })
-    } else {
-        f
     }
 }

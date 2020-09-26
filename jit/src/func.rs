@@ -1,7 +1,5 @@
 use super::{ffi, FuncType, Store, Trap, Val, ValType, ValTypeVec};
-use std::ffi::c_void;
-use std::marker;
-use std::ptr;
+use std::{ffi::c_void, marker, ptr};
 
 #[repr(transparent)]
 pub struct Func {
@@ -107,6 +105,49 @@ where
         let env = &*(env as *const F);
         let (a, _args) = A::from(args);
         let ret = env(a);
+        R::into(ret, results);
+        ptr::null_mut()
+    }
+}
+
+pub fn func2<A, B, R, F>(func: F, store: &Store) -> Func
+where
+    A: WasmArg,
+    B: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B) -> R + 'static,
+{
+    let mut params = Vec::new();
+    A::push_valtype(&mut params);
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<A, B, R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
+
+    unsafe extern "C" fn callback<A, B, R, F>(
+        env: *mut c_void,
+        args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        A: WasmArg,
+        B: WasmArg,
+        R: WasmRet,
+        F: Fn(A, B) -> R,
+    {
+        let env = &*(env as *const F);
+        let (a, args) = A::from(args);
+        let (b, _args) = B::from(args);
+        let ret = env(a, b);
         R::into(ret, results);
         ptr::null_mut()
     }

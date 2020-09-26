@@ -19,21 +19,27 @@ pub mod types;
 mod valid;
 pub mod values;
 
-pub use self::ast::Module;
-pub use self::func::{func1, mem_func2};
-pub use self::interpreter::Interpreter;
-pub use self::runtime::{ExternVal, FuncAddr, HostFunc, ModuleInst};
-pub use self::types::Extern;
-pub use self::values::Value;
+pub use self::{
+    ast::Module,
+    func::{func1, func2, func3, func4, mem_func2},
+    interpreter::Interpreter,
+    runtime::{ExternVal, FuncAddr, HostFunc, ModuleInst},
+    types::Extern,
+    values::Value,
+};
 
 #[cfg(feature = "test")]
 pub use self::runtime::{GlobalAddr, MemAddr, TableAddr, PAGE_SIZE};
 
-use self::interpreter::{eval_const_expr, Trap, TrapOrigin};
-use self::runtime::*;
-use std::collections::HashMap;
-use std::io::{Read, Seek};
-use std::rc::Rc;
+use self::{
+    interpreter::{eval_const_expr, Trap, TrapOrigin},
+    runtime::*,
+};
+use std::{
+    collections::HashMap,
+    io::{Read, Seek},
+    rc::Rc,
+};
 
 // Do not publish internal fields of the Store struct
 pub struct Store {
@@ -140,8 +146,7 @@ pub fn module_exports<'a>(
     }
 
     module.exports.iter().map(move |export| {
-        use self::ast::*;
-        use self::types::*;
+        use self::{ast::*, types::*};
         let export_type = match export.desc {
             ExportDesc::Func(idx) => {
                 let len = func_import_types.len();

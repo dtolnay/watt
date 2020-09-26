@@ -1,13 +1,17 @@
-use crate::data::Data;
-use crate::import;
-use crate::runtime::{
-    current_memory, Engine, Extern, Func, FuncRef, ImportType, Instance, InstanceImports,
-    MemoryRef, Module, Store, Val,
+use crate::{
+    data::{Data, Handle},
+    import,
+    runtime::{
+        current_memory, Engine, Extern, Func, FuncRef, ImportType, Instance, InstanceImports,
+        MemoryRef, Module, Store, Val,
+    },
+    WasmMacro,
 };
-use crate::WasmMacro;
 use proc_macro::TokenStream;
-use std::cell::RefCell;
-use std::collections::hash_map::{Entry, HashMap};
+use std::{
+    cell::RefCell,
+    collections::hash_map::{Entry, HashMap},
+};
 
 struct ThreadState {
     _engine: Engine,
@@ -57,7 +61,7 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
         let raws = Data::with(|d| {
             inputs
                 .into_iter()
-                .map(|input| Val::i32(d.tokenstream.push(input) as i32))
+                .map(|input| Val::i32(d.tokenstream.push(input).id() as i32))
                 .collect::<Vec<_>>()
         });
 
@@ -69,7 +73,7 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
             let output = call(&exports.main, &args);
             let raw = call(&exports.token_stream_into_raw, &[output]);
             let handle = raw.as_i32().unwrap() as u32;
-            Data::with(|d| d.tokenstream[handle].clone())
+            Data::with(|d| d.tokenstream[Handle::new(handle)].clone())
         })
     })
 }

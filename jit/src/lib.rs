@@ -11,8 +11,7 @@
 
 #![allow(clippy::wrong_self_convention, clippy::useless_transmute)]
 
-use std::slice;
-use std::str;
+use std::{slice, str};
 
 mod engine;
 mod ffi;
@@ -25,16 +24,19 @@ mod store;
 mod trap;
 mod val;
 mod valtype;
-pub use self::engine::Engine;
-pub use self::func::{func1, mem_func2, Func as HostFunc, Func, FuncRef};
-pub use self::functype::FuncType;
-pub use self::instance::{Extern, Instance, InstanceImports};
-pub use self::memory::MemoryRef;
-pub use self::module::{ImportType, Module};
-pub use self::store::Store;
-pub use self::trap::Trap;
-pub use self::val::Val;
-pub use self::valtype::{ValType, ValTypeVec};
+pub use self::{
+    engine::Engine,
+    ffi::wasm_val_t,
+    func::{func1, func2, mem_func2, Func as HostFunc, Func, FuncRef, WasmArg, WasmRet, WasmVal},
+    functype::FuncType,
+    instance::{Extern, Instance, InstanceImports},
+    memory::MemoryRef,
+    module::{ImportType, Module},
+    store::Store,
+    trap::Trap,
+    val::Val,
+    valtype::{ValType, ValTypeVec},
+};
 
 unsafe fn name_to_str<'a>(name: *const ffi::wasm_name_t) -> &'a str {
     str::from_utf8_unchecked(slice::from_raw_parts((*name).data, (*name).size))
@@ -42,9 +44,7 @@ unsafe fn name_to_str<'a>(name: *const ffi::wasm_name_t) -> &'a str {
 
 pub mod current_memory {
     use super::MemoryRef;
-    use std::cell::Cell;
-    use std::mem;
-    use std::ptr;
+    use std::{cell::Cell, mem, ptr};
 
     std::thread_local!(static CURRENT: Cell<*const MemoryRef<'static>> = Cell::new(ptr::null()));
 

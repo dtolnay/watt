@@ -2,8 +2,6 @@ mod bytes;
 #[cfg(feature = "proc-macro-server")]
 mod diagnostic;
 #[cfg(feature = "proc-macro-server")]
-mod ffi;
-#[cfg(feature = "proc-macro-server")]
 mod freefunctions;
 #[cfg(feature = "proc-macro-server")]
 mod group;
@@ -22,6 +20,11 @@ mod string;
 mod tokenstream;
 #[cfg(feature = "proc-macro-server")]
 mod tokenstreamiter;
+
+#[cfg(not(jit))]
+mod ffi;
+#[cfg(jit)]
+mod jit_ffi;
 
 pub use bytes::*;
 #[cfg(feature = "proc-macro-server")]

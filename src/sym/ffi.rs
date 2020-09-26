@@ -1,4 +1,4 @@
-use std::ops::Bound;
+use std::{num::NonZeroU32, ops::Bound};
 
 use crate::{
     data::{Data, Handle},
@@ -11,6 +11,7 @@ use proc_macro::{Delimiter, Spacing, TokenTree};
 #[cfg(feature = "nightly")]
 use proc_macro::{Level, LineColumn};
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmRet for Option<TokenTree> {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         let (tag, data): (u32, _) = Data::with(|d| match val {
@@ -34,6 +35,7 @@ impl WasmRet for Option<TokenTree> {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmArg for TokenTree {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         Data::with(|d| {
@@ -59,12 +61,14 @@ impl WasmArg for TokenTree {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmRet for Spacing {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         interp.push(Value::I32(val as u32))
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmArg for Spacing {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         let val = interp.pop().unwrap();
@@ -82,18 +86,21 @@ impl WasmArg for Spacing {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmArg for bool {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         interp.pop().unwrap() != Value::I32(0)
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmRet for bool {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         interp.push(Value::I32(if val { 1 } else { 0 }))
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmArg for Delimiter {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         let val = interp.pop().unwrap();
@@ -115,6 +122,7 @@ impl WasmArg for Delimiter {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmRet for Delimiter {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         interp.push(Value::I32(val as u32))
@@ -159,6 +167,7 @@ impl WasmArg for Level {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 impl WasmArg for Bound<usize> {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         let value = if let Value::I32(n) = interp.pop().unwrap() {
@@ -178,5 +187,33 @@ impl WasmArg for Bound<usize> {
             2 => Bound::Unbounded,
             _ => unreachable!(),
         }
+    }
+}
+
+impl<T> WasmArg for Handle<T> {
+    fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
+        let id: u32 = WasmArg::pop(interp);
+        Handle::new(id)
+    }
+}
+
+impl<T> WasmRet for Handle<T> {
+    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
+        let id: u32 = val.id();
+        WasmRet::push(interp, id)
+    }
+}
+
+impl<T> WasmArg for Option<Handle<T>> {
+    fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
+        let id: u32 = WasmArg::pop(interp);
+        NonZeroU32::new(id).map(Into::into).map(Handle::<T>::new)
+    }
+}
+
+impl<T> WasmRet for Option<Handle<T>> {
+    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
+        let id: u32 = val.map(|val| val.id()).unwrap_or(0);
+        WasmRet::push(interp, id)
     }
 }
