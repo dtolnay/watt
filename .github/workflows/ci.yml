@@ -27,7 +27,7 @@ jobs:
       - run: WATT_JIT=1 cargo check
   
   nightly:
-    name: Rust ${{matrix.rust}}
+    name: Rust nightly
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
