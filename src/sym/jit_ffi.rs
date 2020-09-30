@@ -270,7 +270,7 @@ unsafe impl WasmRet for Bound<usize> {
             Bound::Unbounded => (2, 0),
         };
 
-        (*ptr).of.i32 = ((data as u32) << 2 | tag) as i64;
+        (*ptr).of.i32 = ((data as u32) << 2 | tag) as i32;
     }
 }
 
