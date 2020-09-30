@@ -30,6 +30,7 @@ impl WasmRet for () {
     }
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn func0<R, F>(func: F, _store: &Store) -> HostFunc
 where
     R: WasmRet,
@@ -72,6 +73,7 @@ where
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn func3<A, B, C, R, F>(func: F, _store: &Store) -> HostFunc
 where
     A: WasmArg,
@@ -90,6 +92,7 @@ where
     })
 }
 
+#[cfg(feature = "proc-macro-server")]
 pub fn func4<A, B, C, D, R, F>(func: F, _store: &Store) -> HostFunc
 where
     A: WasmArg,

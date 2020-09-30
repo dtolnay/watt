@@ -24,6 +24,8 @@ mod store;
 mod trap;
 mod val;
 mod valtype;
+#[cfg(feature = "proc-macro-server")]
+pub use self::func::{func0,  func3, func4};
 pub use self::{
     engine::Engine,
     ffi::wasm_val_t,

@@ -58,6 +58,24 @@ unsafe impl WasmRet for u32 {
     }
 }
 
+unsafe impl WasmVal for u64 {
+    fn push_valtype(list: &mut Vec<ValType>) {
+        list.push(ValType::i64());
+    }
+}
+
+unsafe impl WasmArg for u64 {
+    unsafe fn from(ptr: *const ffi::wasm_val_t) -> (Self, *const ffi::wasm_val_t) {
+        ((*ptr).of.i64 as u64, ptr.offset(2))
+    }
+}
+
+unsafe impl WasmRet for u64 {
+    unsafe fn into(value: Self, ptr: *mut ffi::wasm_val_t) {
+        (*ptr).of.i64 = value as i64;
+    }
+}
+
 unsafe impl WasmVal for () {
     fn push_valtype(_list: &mut Vec<ValType>) {}
 }
@@ -68,6 +86,43 @@ unsafe impl WasmRet for () {
 
 unsafe extern "C" fn dtor<T>(env: *mut c_void) {
     drop(Box::from_raw(env as *mut T));
+}
+
+#[cfg(feature = "proc-macro-server")]
+pub fn func0<R, F>(func: F, store: &Store) -> Func
+where
+    R: WasmRet,
+    F: Fn() -> R + 'static,
+{
+    let params = Vec::new();
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
+
+    unsafe extern "C" fn callback<R, F>(
+        env: *mut c_void,
+        _args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        R: WasmRet,
+        F: Fn() -> R,
+    {
+        let env = &*(env as *const F);
+        let ret = env();
+        R::into(ret, results);
+        ptr::null_mut()
+    }
 }
 
 pub fn func1<A, R, F>(func: F, store: &Store) -> Func
@@ -119,6 +174,7 @@ where
 {
     let mut params = Vec::new();
     A::push_valtype(&mut params);
+    B::push_valtype(&mut params);
     let mut results = Vec::new();
     R::push_valtype(&mut results);
     let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
@@ -148,6 +204,108 @@ where
         let (a, args) = A::from(args);
         let (b, _args) = B::from(args);
         let ret = env(a, b);
+        R::into(ret, results);
+        ptr::null_mut()
+    }
+}
+
+#[cfg(feature = "proc-macro-server")]
+pub fn func3<A, B, C, R, F>(func: F, store: &Store) -> Func
+where
+    A: WasmArg,
+    B: WasmArg,
+    C: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B, C) -> R + 'static,
+{
+    let mut params = Vec::new();
+    A::push_valtype(&mut params);
+    B::push_valtype(&mut params);
+    C::push_valtype(&mut params);
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<A, B, C, R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
+
+    unsafe extern "C" fn callback<A, B, C, R, F>(
+        env: *mut c_void,
+        args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        A: WasmArg,
+        B: WasmArg,
+        C: WasmArg,
+        R: WasmRet,
+        F: Fn(A, B, C) -> R,
+    {
+        let env = &*(env as *const F);
+        let (a, args) = A::from(args);
+        let (b, args) = B::from(args);
+        let (c, _args) = C::from(args);
+        let ret = env(a, b, c);
+        R::into(ret, results);
+        ptr::null_mut()
+    }
+}
+
+#[cfg(feature = "proc-macro-server")]
+pub fn func4<A, B, C, D, R, F>(func: F, store: &Store) -> Func
+where
+    A: WasmArg,
+    B: WasmArg,
+    C: WasmArg,
+    D: WasmArg,
+    R: WasmRet,
+    F: Fn(A, B, C, D) -> R + 'static,
+{
+    let mut params = Vec::new();
+    A::push_valtype(&mut params);
+    B::push_valtype(&mut params);
+    C::push_valtype(&mut params);
+    D::push_valtype(&mut params);
+    let mut results = Vec::new();
+    R::push_valtype(&mut results);
+    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ptr = Box::into_raw(Box::new(func));
+    return unsafe {
+        Func::into_host_func(
+            store,
+            &ty,
+            Some(callback::<A, B, C, D, R, F>),
+            ptr as *mut c_void,
+            dtor::<F>,
+        )
+    };
+
+    unsafe extern "C" fn callback<A, B, C, D, R, F>(
+        env: *mut c_void,
+        args: *const ffi::wasm_val_t,
+        results: *mut ffi::wasm_val_t,
+    ) -> *mut ffi::wasm_trap_t
+    where
+        A: WasmArg,
+        B: WasmArg,
+        C: WasmArg,
+        D: WasmArg,
+        R: WasmRet,
+        F: Fn(A, B, C, D) -> R,
+    {
+        let env = &*(env as *const F);
+        let (a, args) = A::from(args);
+        let (b, args) = B::from(args);
+        let (c, args) = C::from(args);
+        let (d, _args) = D::from(args);
+        let ret = env(a, b, c, d);
         R::into(ret, results);
         ptr::null_mut()
     }

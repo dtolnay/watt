@@ -74,7 +74,7 @@ pub fn span_start(handle: Handle<Span>) -> LineColumn {
 }
 
 #[cfg(not(feature = "nightly"))]
-pub fn span_start(_: Handle<Span>) {
+pub fn span_start(_: Handle<Span>) -> u64 {
     unimplemented!()
 }
 
@@ -84,7 +84,7 @@ pub fn span_end(handle: Handle<Span>) -> LineColumn {
 }
 
 #[cfg(not(feature = "nightly"))]
-pub fn span_end(_: Handle<Span>) {
+pub fn span_end(_: Handle<Span>) -> u64 {
     unimplemented!()
 }
 

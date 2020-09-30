@@ -1,8 +1,6 @@
 #[cfg(feature = "nightly")]
 use crate::data::Data;
 use crate::data::Handle;
-#[cfg(feature = "nightly")]
-use proc_macro::MultiSpan;
 use proc_macro::Span;
 
 #[cfg(feature = "nightly")]

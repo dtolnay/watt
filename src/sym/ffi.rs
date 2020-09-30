@@ -1,37 +1,32 @@
-use std::{num::NonZeroU32, ops::Bound};
-
+#[cfg(feature = "proc-macro-server")]
+use crate::data::Data;
 use crate::{
-    data::{Data, Handle},
+    data::Handle,
     runtime::{
         func::{WasmArg, WasmRet},
         Value,
     },
 };
+#[cfg(feature = "proc-macro-server")]
 use proc_macro::{Delimiter, Spacing, TokenTree};
 #[cfg(feature = "nightly")]
 use proc_macro::{Level, LineColumn};
+use std::num::NonZeroU32;
+#[cfg(feature = "proc-macro-server")]
+use std::ops::Bound;
 
 #[cfg(feature = "proc-macro-server")]
 impl WasmRet for Option<TokenTree> {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
-        let (tag, data): (u32, _) = Data::with(|d| match val {
-            Some(TokenTree::Group(g)) => (0, d.group.push(g).id()),
-            Some(TokenTree::Punct(p)) => (1, d.punct.push(p).id()),
-            Some(TokenTree::Ident(i)) => (2, d.ident.push(i).id()),
-            Some(TokenTree::Literal(l)) => (3, d.literal.push(l).id()),
-            None => (4, 0),
+        let (tag, data): (u32, u32) = Data::with(|d| match val {
+            Some(TokenTree::Group(g)) => (1, d.group.push(g).id()),
+            Some(TokenTree::Punct(p)) => (2, d.punct.push(p).id()),
+            Some(TokenTree::Ident(i)) => (3, d.ident.push(i).id()),
+            Some(TokenTree::Literal(l)) => (4, d.literal.push(l).id()),
+            None => (0, 0),
         });
 
-        let addr = interp.pop().unwrap();
-        let addr = if let Value::I32(addr) = addr {
-            addr
-        } else {
-            unreachable!()
-        };
-        let ret = &mut interp.get_memory_mut()[addr as usize..][..8];
-
-        ret[0..4].copy_from_slice(&tag.to_le_bytes());
-        ret[4..8].copy_from_slice(&data.to_le_bytes());
+        interp.push(Value::I32(data << 3 | tag));
     }
 }
 
@@ -39,22 +34,19 @@ impl WasmRet for Option<TokenTree> {
 impl WasmArg for TokenTree {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
         Data::with(|d| {
-            let handle = if let Value::I32(handle) = interp.pop().unwrap() {
-                handle
+            let raw = if let Value::I32(raw) = interp.pop().unwrap() {
+                raw
             } else {
                 unreachable!()
             };
-            let tag = if let Value::I32(tag) = interp.pop().unwrap() {
-                tag
-            } else {
-                unreachable!()
-            };
+            let handle = raw >> 3;
+            let tag = raw & 7;
 
             match tag {
-                0 => TokenTree::Group(d.group.take(Handle::new(handle))),
-                1 => TokenTree::Punct(d.punct.take(Handle::new(handle))),
-                2 => TokenTree::Ident(d.ident[Handle::new(handle)].clone()),
-                3 => TokenTree::Literal(d.literal.take(Handle::new(handle))),
+                1 => TokenTree::Group(d.group.take(Handle::new(handle))),
+                2 => TokenTree::Punct(d.punct.take(Handle::new(handle))),
+                3 => TokenTree::Ident(d.ident[Handle::new(handle)].clone()),
+                4 => TokenTree::Literal(d.literal.take(Handle::new(handle))),
                 _ => unreachable!(),
             }
         })
@@ -132,16 +124,7 @@ impl WasmRet for Delimiter {
 #[cfg(feature = "nightly")]
 impl WasmRet for LineColumn {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
-        let addr = interp.pop().unwrap();
-        let addr = if let Value::I32(addr) = addr {
-            addr
-        } else {
-            unreachable!()
-        };
-        let ret = &mut interp.get_memory_mut()[addr as usize..][..8];
-
-        ret[0..4].copy_from_slice(&val.line.to_le_bytes());
-        ret[4..8].copy_from_slice(&val.column.to_le_bytes());
+        interp.push(Value::I64(((val.line as u64) << 32) | (val.column as u64)));
     }
 }
 
@@ -170,16 +153,14 @@ impl WasmArg for Level {
 #[cfg(feature = "proc-macro-server")]
 impl WasmArg for Bound<usize> {
     fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
-        let value = if let Value::I32(n) = interp.pop().unwrap() {
-            n
+        let raw = if let Value::I32(raw) = interp.pop().unwrap() {
+            raw
         } else {
             unreachable!()
         };
-        let tag = if let Value::I32(n) = interp.pop().unwrap() {
-            n
-        } else {
-            unreachable!()
-        };
+
+        let tag = raw & 3;
+        let value = raw >> 2;
 
         match tag {
             0 => Bound::Included(value as usize),
@@ -215,5 +196,11 @@ impl<T> WasmRet for Option<Handle<T>> {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         let id: u32 = val.map(|val| val.id()).unwrap_or(0);
         WasmRet::push(interp, id)
+    }
+}
+
+impl WasmRet for u64 {
+    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
+        interp.push(Value::I64(val))
     }
 }

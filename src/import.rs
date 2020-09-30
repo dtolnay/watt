@@ -1,5 +1,5 @@
 #[cfg(feature = "proc-macro-server")]
-use crate::runtime::func::{func0, func3, func4};
+use crate::runtime::{func0, func3, func4};
 use crate::{
     runtime::{func1, func2, mem_func2, HostFunc, Store},
     sym,

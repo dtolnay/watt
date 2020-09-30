@@ -3,24 +3,19 @@ use std::ops::Bound;
 use crate::{GroupHandle, IdentHandle, LiteralHandle, PunctHandle};
 use proc_macro::{bridge::TokenTree, Delimiter, Level, LineColumn, Spacing};
 
-#[repr(u8)]
+#[repr(C)]
 #[derive(Debug)]
-pub enum FFITokenTree {
-    Group(GroupHandle),
-    Punct(PunctHandle),
-    Ident(IdentHandle),
-    Literal(LiteralHandle),
-    None,
-}
+pub struct FFITokenTree(u32);
 
 impl From<TokenTree<GroupHandle, PunctHandle, IdentHandle, LiteralHandle>> for FFITokenTree {
     fn from(tt: TokenTree<GroupHandle, PunctHandle, IdentHandle, LiteralHandle>) -> Self {
-        match tt {
-            TokenTree::Group(g) => FFITokenTree::Group(g),
-            TokenTree::Punct(p) => FFITokenTree::Punct(p),
-            TokenTree::Ident(i) => FFITokenTree::Ident(i),
-            TokenTree::Literal(l) => FFITokenTree::Literal(l),
-        }
+        let (tag, id) = match tt {
+            TokenTree::Group(g) => (1, g.into_id()),
+            TokenTree::Punct(p) => (2, p.into_id()),
+            TokenTree::Ident(i) => (3, i.into_id()),
+            TokenTree::Literal(l) => (4, l.into_id()),
+        };
+        FFITokenTree(id << 3 | tag)
     }
 }
 
@@ -34,12 +29,16 @@ impl From<FFITokenTree>
     for Option<TokenTree<GroupHandle, PunctHandle, IdentHandle, LiteralHandle>>
 {
     fn from(tt: FFITokenTree) -> Self {
-        match tt {
-            FFITokenTree::Group(g) => Some(TokenTree::Group(g)),
-            FFITokenTree::Punct(p) => Some(TokenTree::Punct(p)),
-            FFITokenTree::Ident(i) => Some(TokenTree::Ident(i)),
-            FFITokenTree::Literal(l) => Some(TokenTree::Literal(l)),
-            FFITokenTree::None => None,
+        let tag = tt.0 & 7;
+        let id = tt.0 >> 3;
+
+        match tag {
+            0 => None,
+            1 => Some(TokenTree::Group(GroupHandle::new(id))),
+            2 => Some(TokenTree::Punct(PunctHandle::new(id))),
+            3 => Some(TokenTree::Ident(IdentHandle::new(id))),
+            4 => Some(TokenTree::Literal(LiteralHandle::new(id))),
+            _ => unreachable!(),
         }
     }
 }
@@ -99,26 +98,20 @@ impl From<Delimiter> for FFIDelimiter {
 }
 
 #[repr(C)]
-pub struct FFILineColumn {
-    line: u32,
-    column: u32,
-}
+pub struct FFILineColumn(u64);
 
 impl From<FFILineColumn> for LineColumn {
     fn from(lc: FFILineColumn) -> Self {
         LineColumn {
-            line: lc.line as usize,
-            column: lc.column as usize,
+            line: (lc.0 >> 32) as usize,
+            column: (lc.0 as u32) as usize,
         }
     }
 }
 
 impl From<LineColumn> for FFILineColumn {
     fn from(lc: LineColumn) -> Self {
-        FFILineColumn {
-            line: lc.line as u32,
-            column: lc.column as u32,
-        }
+        FFILineColumn((lc.line as u64) << 32 | (lc.column as u64))
     }
 }
 
@@ -153,29 +146,30 @@ impl From<Level> for FFILevel {
     }
 }
 
-#[repr(u8)]
-pub enum FFIBound {
-    Included(u32),
-    Excluded(u32),
-    Unbounded,
-}
+#[repr(C)]
+pub struct FFIBound(u32);
 
 impl From<FFIBound> for Bound<usize> {
     fn from(bound: FFIBound) -> Self {
-        match bound {
-            FFIBound::Included(n) => Bound::Included(n as usize),
-            FFIBound::Excluded(n) => Bound::Excluded(n as usize),
-            FFIBound::Unbounded => Bound::Unbounded,
+        let tag = bound.0 & 3;
+        let value = bound.0 >> 2;
+
+        match tag {
+            0 => Bound::Included(value as usize),
+            1 => Bound::Excluded(value as usize),
+            2 => Bound::Unbounded,
+            _ => unreachable!(),
         }
     }
 }
 
 impl From<Bound<usize>> for FFIBound {
     fn from(bound: Bound<usize>) -> Self {
-        match bound {
-            Bound::Included(n) => FFIBound::Included(n as u32),
-            Bound::Excluded(n) => FFIBound::Excluded(n as u32),
-            Bound::Unbounded => FFIBound::Unbounded,
-        }
+        let (tag, value) = match bound {
+            Bound::Included(n) => (0, n as u32),
+            Bound::Excluded(n) => (1, n as u32),
+            Bound::Unbounded => (2, 0),
+        };
+        FFIBound((value as u32) << 2 | tag)
     }
 }

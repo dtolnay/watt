@@ -58,7 +58,7 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
         let exports = Exports::collect(module, &instance_exports, fun);
 
         let _guard = Data::guard();
-        let raws = Data::with(|d| {
+        let args = Data::with(|d| {
             inputs
                 .into_iter()
                 .map(|input| Val::i32(d.tokenstream.push(input).id() as i32))
@@ -66,21 +66,25 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
         });
 
         current_memory::set(&exports.memory, || {
-            let args: Vec<Val> = raws
+            #[cfg(not(feature = "proc-macro-server"))]
+            let args: Vec<Val> = args
                 .into_iter()
                 .map(|raw| call(&exports.raw_to_token_stream, &[raw]))
                 .collect();
             let output = call(&exports.main, &args);
-            let raw = call(&exports.token_stream_into_raw, &[output]);
-            let handle = raw.as_i32().unwrap() as u32;
-            Data::with(|d| d.tokenstream[Handle::new(handle)].clone())
+            #[cfg(not(feature = "proc-macro-server"))]
+            let output = call(&exports.token_stream_into_raw, &[output]);
+            let handle = output.as_i32().unwrap() as u32;
+            Data::with(|d| d.tokenstream.take(Handle::new(handle)))
         })
     })
 }
 
 struct Exports<'a> {
     main: FuncRef<'a>,
+    #[cfg(not(feature = "proc-macro-server"))]
     raw_to_token_stream: FuncRef<'a>,
+    #[cfg(not(feature = "proc-macro-server"))]
     token_stream_into_raw: FuncRef<'a>,
     memory: MemoryRef<'a>,
 }
@@ -88,13 +92,17 @@ struct Exports<'a> {
 impl<'a> Exports<'a> {
     fn collect(module: &Module, externs: &'a [Extern], entry_point: &str) -> Self {
         let mut main = None;
+        #[cfg(not(feature = "proc-macro-server"))]
         let mut raw_to_token_stream = None;
+        #[cfg(not(feature = "proc-macro-server"))]
         let mut token_stream_into_raw = None;
         let mut memory = None;
 
         for (ty, ex) in module.exports().iter().zip(externs) {
             match ty.name() {
+                #[cfg(not(feature = "proc-macro-server"))]
                 "raw_to_token_stream" => raw_to_token_stream = Some(ex.func().unwrap()),
+                #[cfg(not(feature = "proc-macro-server"))]
                 "token_stream_into_raw" => token_stream_into_raw = Some(ex.func().unwrap()),
                 name if name == entry_point => main = Some(ex.func().unwrap()),
                 _ => {}
@@ -105,13 +113,17 @@ impl<'a> Exports<'a> {
         }
 
         let main = main.unwrap_or_else(|| unimplemented!("unresolved macro: {:?}", entry_point));
+        #[cfg(not(feature = "proc-macro-server"))]
         let raw_to_token_stream = raw_to_token_stream.expect("raw_to_token_stream not found");
+        #[cfg(not(feature = "proc-macro-server"))]
         let token_stream_into_raw = token_stream_into_raw.expect("token_stream_into_raw not found");
         let memory = memory.expect("missing memory export");
 
         Exports {
             main,
+            #[cfg(not(feature = "proc-macro-server"))]
             raw_to_token_stream,
+            #[cfg(not(feature = "proc-macro-server"))]
             token_stream_into_raw,
             memory,
         }

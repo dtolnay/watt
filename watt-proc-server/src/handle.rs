@@ -12,15 +12,21 @@ macro_rules! define_handle {
 
         impl $id {
             #[doc(hidden)]
-            pub unsafe fn new(id: u32) -> Self {
+            pub fn new(id: u32) -> Self {
                 Self {
                     id: NonZeroU32::new(id).unwrap(),
                     marker: PhantomData,
                 }
             }
 
+            pub fn into_id(self) -> u32 {
+                let id = self.id.into();
+                std::mem::forget(self);
+                id
+            }
+
             #[doc(hidden)]
-            pub unsafe fn to_owned(&self) -> Self {
+            pub fn to_owned(&self) -> Self {
                 Self {
                     id: self.id,
                     marker: self.marker,
@@ -71,15 +77,19 @@ macro_rules! define_handle {
 
         impl $id {
             #[doc(hidden)]
-            pub unsafe fn new(id: u32) -> Self {
+            pub fn new(id: u32) -> Self {
                 Self {
                     id: NonZeroU32::new(id).unwrap(),
                     marker: PhantomData,
                 }
             }
 
+            pub fn into_id(self) -> u32 {
+                self.id.into()
+            }
+
             #[doc(hidden)]
-            pub unsafe fn to_owned(&self) -> Self {
+            pub fn to_owned(&self) -> Self {
                 Self {
                     id: self.id,
                     marker: self.marker,

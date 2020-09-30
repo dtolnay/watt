@@ -14,3 +14,4 @@ watt = "0.4"
 [features]
 default = []
 proc-macro-server = ["watt/proc-macro-server"]
+nightly = ["watt/nightly"]

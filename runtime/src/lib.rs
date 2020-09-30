@@ -19,9 +19,11 @@ pub mod types;
 mod valid;
 pub mod values;
 
+#[cfg(feature = "proc-macro-server")]
+pub use self::func::{func0, func3, func4};
 pub use self::{
     ast::Module,
-    func::{func1, func2, func3, func4, mem_func2},
+    func::{func1, func2, mem_func2},
     interpreter::Interpreter,
     runtime::{ExternVal, FuncAddr, HostFunc, ModuleInst},
     types::Extern,
