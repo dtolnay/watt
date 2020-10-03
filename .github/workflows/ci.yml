@@ -38,7 +38,6 @@ jobs:
           toolchain: 1.42.0
           target: wasm32-unknown-unknown
       - run: cargo build --manifest-path demo/impl/Cargo.toml --release --target wasm32-unknown-unknown
-      - run: cargo build --manifest-path demo/impl-proc-macro-server/Cargo.toml --release --target wasm32-unknown-unknown
       - run: cargo run --manifest-path demo/caller/Cargo.toml
       - run: cargo test --manifest-path runtime/tests/Cargo.toml
       - run: cargo test --manifest-path proc-macro/Cargo.toml

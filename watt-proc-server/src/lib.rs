@@ -1,5 +1,4 @@
 #![feature(proc_macro_internals, proc_macro_span, proc_macro_diagnostic)]
-#![feature(set_stdio)]
 
 extern crate proc_macro;
 
