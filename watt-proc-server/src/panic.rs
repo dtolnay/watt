@@ -9,10 +9,14 @@ extern "C" {
 }
 
 pub fn invoke_hint_panic(message: &str, line: u32) {
+    // sometimes panicking causes another panic which traps without any debug info
+    // make sure to report the error before printing it
+
     let handle = StringHandle::from(message);
     unsafe { hint_panic(handle, line) }
 }
 
+/// `PanicHook` sets a panic handler to report any panics back to the macro caller
 pub struct PanicHook {
     prev_hook: Option<Box<dyn Fn(&PanicInfo<'_>) + 'static + Sync + Send>>,
 }

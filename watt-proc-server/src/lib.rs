@@ -11,6 +11,7 @@ mod string;
 
 pub use handle::TokenStreamHandle;
 pub(crate) use handle::*;
+#[doc(inline)]
 pub use panic::PanicHook;
 
 use proc_macro::{
@@ -19,6 +20,7 @@ use proc_macro::{
 };
 use server::Server;
 
+/// expand a macro with one TokenStream (eg. derive macros)
 pub fn expand1(tts: TokenStreamHandle, f: fn(TokenStream) -> TokenStream) -> TokenStreamHandle {
     let _guard = PanicHook::hook();
 
@@ -29,6 +31,7 @@ pub fn expand1(tts: TokenStreamHandle, f: fn(TokenStream) -> TokenStream) -> Tok
         .unwrap()
 }
 
+/// expand a macro with two TokenStreams (eg. attribute macros)
 pub fn expand2(
     tts1: TokenStreamHandle,
     tts2: TokenStreamHandle,

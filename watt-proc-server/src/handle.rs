@@ -4,6 +4,7 @@ macro_rules! define_handle {
     ($id:ident: $clone:ident + $drop:ident) => {
         #[repr(transparent)]
         #[derive(Debug)]
+        /// a ffi handle used to communicate between the webassembly and the runtime
         pub struct $id {
             id: NonZeroU32,
             // make sure the handle isn't sync
@@ -11,22 +12,22 @@ macro_rules! define_handle {
         }
 
         impl $id {
-            #[doc(hidden)]
-            pub fn new(id: u32) -> Self {
+            #[allow(dead_code)]
+            pub(crate) fn new(id: u32) -> Self {
                 Self {
                     id: NonZeroU32::new(id).unwrap(),
                     marker: PhantomData,
                 }
             }
 
-            pub fn into_id(self) -> u32 {
+            #[allow(dead_code)]
+            pub(crate) fn into_id(self) -> u32 {
                 let id = self.id.into();
                 std::mem::forget(self);
                 id
             }
 
-            #[doc(hidden)]
-            pub fn to_owned(&self) -> Self {
+            pub(crate) fn to_owned(&self) -> Self {
                 Self {
                     id: self.id,
                     marker: self.marker,
@@ -76,20 +77,21 @@ macro_rules! define_handle {
         }
 
         impl $id {
-            #[doc(hidden)]
-            pub fn new(id: u32) -> Self {
+            #[allow(dead_code)]
+            pub(crate) fn new(id: u32) -> Self {
                 Self {
                     id: NonZeroU32::new(id).unwrap(),
                     marker: PhantomData,
                 }
             }
 
-            pub fn into_id(self) -> u32 {
+            #[allow(dead_code)]
+            pub(crate) fn into_id(self) -> u32 {
                 self.id.into()
             }
 
-            #[doc(hidden)]
-            pub fn to_owned(&self) -> Self {
+            #[allow(dead_code)]
+            pub(crate) fn to_owned(&self) -> Self {
                 Self {
                     id: self.id,
                     marker: self.marker,
