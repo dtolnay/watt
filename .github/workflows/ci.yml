@@ -26,7 +26,7 @@ jobs:
       - run: cargo check --features proc-macro-server
       - run: WATT_JIT=1 cargo check
   
-  "1.42.0":
+  test-old:
     name: Rust 1.42.0
     runs-on: ubuntu-latest
     strategy:
