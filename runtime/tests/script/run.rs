@@ -149,7 +149,7 @@ fn run_assertion(store: &mut Store, registry: &Registry, assertion: Assertion) {
         }
         Exhaustion(action, reason) => {
             match (reason.as_ref(), run_action(store, registry, &action)) {
-                ("call stack exhausted", Err(Error::StackOverflow)) => (),
+                ("call stack exhausted", Err(Error::StackOverflow)) => {}
                 (reason, err) => panic!(
                     "the action `{:?}` should cause a stack overflow (reason = {}, err = {:?})",
                     action, reason, err
@@ -160,7 +160,7 @@ fn run_assertion(store: &mut Store, registry: &Registry, assertion: Assertion) {
             let (_, m) = decode_module_src(&module);
             // Do not resolve the imports for invalid modules
             match (reason, instantiate_module(store, m, &[]).err()) {
-                (_, Some(Error::InvalidModule)) => (),
+                (_, Some(Error::InvalidModule)) => {}
                 (reason, err) => panic!(
                     "instantiating module `{:?}` should not be valid (reason = {}, err = {:?})",
                     module, reason, err
@@ -193,9 +193,9 @@ fn run_assertion(store: &mut Store, registry: &Registry, assertion: Assertion) {
                 reason.as_ref(),
                 instantiate_module(store, m, &imports[..]).err(),
             ) {
-                ("incompatible import type", Some(Error::ImportTypeMismatch)) => (),
-                ("elements segment does not fit", Some(Error::ElemOffsetTooLarge(_))) => (),
-                ("data segment does not fit", Some(Error::DataOffsetTooLarge(_))) => (),
+                ("incompatible import type", Some(Error::ImportTypeMismatch)) => {}
+                ("elements segment does not fit", Some(Error::ElemOffsetTooLarge(_))) => {}
+                ("data segment does not fit", Some(Error::DataOffsetTooLarge(_))) => {}
                 (reason, err) => panic!(
                     "instantiating module `{:?}` should not link (reason = {}, err = {:?})",
                     module, reason, err

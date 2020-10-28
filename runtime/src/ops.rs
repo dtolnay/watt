@@ -299,37 +299,37 @@ pub trait FloatOp {
 }
 
 macro_rules! impl_convert_float_s {
-	($T:ty, $U:ty, $N:ident) => (
-		#[inline]
-		fn $N(self) -> Option<$U> {
-			if self.is_nan() {
-				None
-			} else {
-				if self >= -(<$U>::min_value() as $T) || self < <$U>::min_value() as $T {
-					None
-				} else {
-					Some(self.trunc() as $U)
-				}
-			}
-		}
-	)
+    ($T:ty, $U:ty, $N:ident) => {
+        #[inline]
+        fn $N(self) -> Option<$U> {
+            if self.is_nan() {
+                None
+            } else {
+                if self >= -(<$U>::min_value() as $T) || self < <$U>::min_value() as $T {
+                    None
+                } else {
+                    Some(self.trunc() as $U)
+                }
+            }
+        }
+    };
 }
 
 macro_rules! impl_convert_float_u {
-	($T:ty, $U:ty, $S:ty, $N:ident) => (
-		#[inline]
-		fn $N(self) -> Option<$U> {
-			if self.is_nan() {
-				None
-			} else {
-				if self >= -(<$S>::min_value() as $T) * 2.0 || self <= -1.0 {
-					None
-				} else {
-					Some(self.trunc() as $U)
-				}
-			}
-		}
-	)
+    ($T:ty, $U:ty, $S:ty, $N:ident) => {
+        #[inline]
+        fn $N(self) -> Option<$U> {
+            if self.is_nan() {
+                None
+            } else {
+                if self >= -(<$S>::min_value() as $T) * 2.0 || self <= -1.0 {
+                    None
+                } else {
+                    Some(self.trunc() as $U)
+                }
+            }
+        }
+    };
 }
 
 macro_rules! impl_float_op {

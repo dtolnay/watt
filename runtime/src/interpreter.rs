@@ -841,7 +841,7 @@ impl<'a> Interpreter<'a> {
             None => {
                 return Err(Trap {
                     origin: TrapOrigin::CallIndirectElemUnitialized,
-                })
+                });
             }
         };
 

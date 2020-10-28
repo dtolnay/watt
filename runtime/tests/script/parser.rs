@@ -28,7 +28,7 @@ impl<'a> Iterator for Lexer<'a> {
             match self.chars.next() {
                 Some((_, c)) if c.is_whitespace() => {}
                 Some((start, '(')) | Some((start, ')')) => {
-                    return Some(&self.src[start..start + 1])
+                    return Some(&self.src[start..start + 1]);
                 }
                 Some((start, '"')) => {
                     // string
