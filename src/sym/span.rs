@@ -45,10 +45,7 @@ pub fn span_join(_: Handle<Span>, _: Handle<Span>) -> Option<Handle<Span>> {
 }
 
 pub fn span_resolved_at(handle1: Handle<Span>, handle2: Handle<Span>) -> Handle<Span> {
-    Data::with(|d| {
-        let resolved = d.span[handle1].resolved_at(d.span[handle2]);
-        d.span.push(resolved)
-    })
+    unimplemented!()
 }
 
 pub fn span_source_text(_: Handle<Span>) -> Option<Handle<String>> {
