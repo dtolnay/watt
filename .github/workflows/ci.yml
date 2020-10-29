@@ -58,12 +58,10 @@ jobs:
       - run: cargo build --manifest-path demo/impl-proc-macro-server/Cargo.toml --release --target wasm32-unknown-unknown
       - run: cargo run --manifest-path demo/caller/Cargo.toml
       - run: cargo run --manifest-path demo/caller/Cargo.toml --features proc-macro-server
-      - run: cargo run --manifest-path demo/caller/Cargo.toml --features nightly
       - run: cargo test --manifest-path runtime/tests/Cargo.toml
       - run: cargo test --manifest-path proc-macro/Cargo.toml
       - run: WATT_JIT=1 cargo check
       - run: WATT_JIT=1 cargo check --features proc-macro-server
-      - run: WATT_JIT=1 cargo check --features nightly
 
   msrv:
     name: Rust 1.35.0

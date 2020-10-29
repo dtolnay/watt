@@ -11,4 +11,3 @@ wa-demo = { path = "../wa" }
 [features]
 default = []
 proc-macro-server = ["wa-demo/proc-macro-server"]
-nightly = ["proc-macro-server", "wa-demo/nightly"]
