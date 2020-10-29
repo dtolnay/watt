@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [beta, stable, 1.45.0]
+        rust: [nightly, beta, stable, 1.42.0]
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@master
@@ -26,43 +26,6 @@ jobs:
       - run: cargo check --features proc-macro-server
       - run: WATT_JIT=1 cargo check
   
-  test-old:
-    name: Rust 1.42.0
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.42.0
-          target: wasm32-unknown-unknown
-      - run: cargo build --manifest-path demo/impl/Cargo.toml --release --target wasm32-unknown-unknown
-      - run: cargo run --manifest-path demo/caller/Cargo.toml
-      - run: cargo test --manifest-path runtime/tests/Cargo.toml
-      - run: cargo test --manifest-path proc-macro/Cargo.toml
-      - run: WATT_JIT=1 cargo check
-
-  nightly:
-    name: Rust nightly
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-          target: wasm32-unknown-unknown
-      - run: cargo build --manifest-path demo/impl/Cargo.toml --release --target wasm32-unknown-unknown
-      - run: cargo build --manifest-path demo/impl-proc-macro-server/Cargo.toml --release --target wasm32-unknown-unknown
-      - run: cargo run --manifest-path demo/caller/Cargo.toml
-      - run: cargo run --manifest-path demo/caller/Cargo.toml --features proc-macro-server
-      - run: cargo test --manifest-path runtime/tests/Cargo.toml
-      - run: cargo test --manifest-path proc-macro/Cargo.toml
-      - run: WATT_JIT=1 cargo check
-      - run: WATT_JIT=1 cargo check --features proc-macro-server
-
   msrv:
     name: Rust 1.35.0
     runs-on: ubuntu-latest

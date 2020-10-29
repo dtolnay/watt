@@ -9,7 +9,7 @@ pub fn ident_new(name: Handle<String>, span: Handle<Span>, raw: bool) -> Handle<
         let ident = if !raw {
             Ident::new(&name, span)
         } else {
-            Ident::new_raw(&name, span)
+            unimplemented!()
         };
 
         d.ident.push(ident)
