@@ -4,7 +4,7 @@ use proc_macro::{Ident, Span};
 pub fn ident_new(name: Handle<String>, span: Handle<Span>, raw: bool) -> Handle<Ident> {
     Data::with(|d| {
         let name = d.string.take(name);
-        let span = d.span.take(span);
+        let span = d.span[span];
 
         let ident = if !raw {
             Ident::new(&name, span)

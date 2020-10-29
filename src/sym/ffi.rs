@@ -44,7 +44,7 @@ impl WasmArg for TokenTree {
 
             match tag {
                 1 => TokenTree::Group(d.group.take(Handle::new(handle))),
-                2 => TokenTree::Punct(d.punct.take(Handle::new(handle))),
+                2 => TokenTree::Punct(d.punct[Handle::new(handle)].clone()),
                 3 => TokenTree::Ident(d.ident[Handle::new(handle)].clone()),
                 4 => TokenTree::Literal(d.literal.take(Handle::new(handle))),
                 _ => unreachable!(),
