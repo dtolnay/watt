@@ -17,7 +17,7 @@ pub fn span_call_site() -> Handle<Span> {
 }
 
 pub fn span_mixed_site() -> Handle<Span> {
-    Data::with(|d| d.span.push(Span::mixed_site()))
+    unimplemented!()
 }
 
 pub fn span_source_file(_: Handle<Span>) -> Handle<()> {
