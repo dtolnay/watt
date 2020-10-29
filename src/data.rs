@@ -1,6 +1,4 @@
 use proc_macro::{token_stream::IntoIter, Group, Ident, Literal, Punct, Span, TokenStream};
-#[cfg(feature = "nightly")]
-use proc_macro::{Diagnostic, SourceFile};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -25,12 +23,6 @@ pub struct Data {
     pub token_stream_iter: Collection<IntoIter>,
     pub literal: Collection<Literal>,
     pub span: Collection<Span>,
-    #[cfg(feature = "nightly")]
-    pub multi_span: Collection<Vec<Span>>,
-    #[cfg(feature = "nightly")]
-    pub source_file: Collection<SourceFile>,
-    #[cfg(feature = "nightly")]
-    pub diagnostic: Collection<Diagnostic>,
 }
 
 impl Data {

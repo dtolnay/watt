@@ -184,16 +184,6 @@
 //!
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
-#![cfg_attr(
-    feature = "nightly",
-    feature(
-        proc_macro_diagnostic,
-        proc_macro_def_site,
-        proc_macro_span,
-        proc_macro_tracked_env
-    )
-)]
-
 extern crate proc_macro;
 
 #[cfg(not(jit))]

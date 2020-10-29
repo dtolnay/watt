@@ -9,8 +9,6 @@ use crate::{
 };
 #[cfg(feature = "proc-macro-server")]
 use proc_macro::{Delimiter, Spacing, TokenTree};
-#[cfg(feature = "nightly")]
-use proc_macro::{Level, LineColumn};
 use std::num::NonZeroU32;
 #[cfg(feature = "proc-macro-server")]
 use std::ops::Bound;
@@ -118,35 +116,6 @@ impl WasmArg for Delimiter {
 impl WasmRet for Delimiter {
     fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
         interp.push(Value::I32(val as u32))
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl WasmRet for LineColumn {
-    fn push(interp: &mut crate::runtime::Interpreter, val: Self) {
-        interp.push(Value::I64(((val.line as u64) << 32) | (val.column as u64)));
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl WasmArg for Level {
-    fn pop(interp: &mut crate::runtime::Interpreter) -> Self {
-        let val = interp.pop().unwrap();
-        if let Value::I32(val) = val {
-            if val == Level::Error as u32 {
-                Level::Error
-            } else if val == Level::Warning as u32 {
-                Level::Warning
-            } else if val == Level::Note as u32 {
-                Level::Note
-            } else if val == Level::Help as u32 {
-                Level::Help
-            } else {
-                unreachable!()
-            }
-        } else {
-            unreachable!()
-        }
     }
 }
 

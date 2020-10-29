@@ -139,19 +139,7 @@ pub fn literal_set_span(handle: Handle<Literal>, span: Handle<Span>) {
     })
 }
 
-#[cfg(all(feature = "proc-macro-server", feature = "nightly"))]
-pub fn literal_subspan(
-    handle: Handle<Literal>,
-    start: Bound<usize>,
-    end: Bound<usize>,
-) -> Option<Handle<Span>> {
-    Data::with(|d| {
-        let literal = &d.literal[handle];
-        literal.subspan((start, end)).map(|span| d.span.push(span))
-    })
-}
-
-#[cfg(all(feature = "proc-macro-server", not(feature = "nightly")))]
+#[cfg(feature = "proc-macro-server")]
 pub fn literal_subspan(
     _: Handle<Literal>,
     _: Bound<usize>,

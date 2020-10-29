@@ -9,9 +9,6 @@ pub fn ident_new(name: Handle<String>, span: Handle<Span>, raw: bool) -> Handle<
         let ident = if !raw {
             Ident::new(&name, span)
         } else {
-            #[cfg(not(feature = "nightly"))]
-            unimplemented!();
-            #[cfg(feature = "nightly")]
             Ident::new_raw(&name, span)
         };
 

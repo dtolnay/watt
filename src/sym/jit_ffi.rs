@@ -6,8 +6,6 @@ use crate::{
 };
 #[cfg(feature = "proc-macro-server")]
 use proc_macro::{Delimiter, Spacing, TokenTree};
-#[cfg(feature = "nightly")]
-use proc_macro::{Level, LineColumn};
 #[cfg(feature = "proc-macro-server")]
 use std::ops::Bound;
 
@@ -138,40 +136,6 @@ unsafe impl WasmRet for Delimiter {
     }
 }
 
-#[cfg(feature = "nightly")]
-unsafe impl WasmVal for Level {
-    fn push_valtype(list: &mut Vec<ValType>) {
-        list.push(ValType::i32());
-    }
-}
-
-#[cfg(feature = "nightly")]
-unsafe impl WasmArg for Level {
-    unsafe fn from(ptr: *const wasm_val_t) -> (Self, *const wasm_val_t) {
-        let id = (*ptr).of.i32;
-        let handle = if id == Level::Error as i32 {
-            Level::Error
-        } else if id == Level::Warning as i32 {
-            Level::Warning
-        } else if id == Level::Note as i32 {
-            Level::Note
-        } else if id == Level::Help as i32 {
-            Level::Help
-        } else {
-            unreachable!()
-        };
-
-        (handle, ptr.offset(1))
-    }
-}
-
-#[cfg(feature = "nightly")]
-unsafe impl WasmRet for Level {
-    unsafe fn into(value: Self, ptr: *mut wasm_val_t) {
-        (*ptr).of.i32 = value as i32;
-    }
-}
-
 #[cfg(feature = "proc-macro-server")]
 unsafe impl WasmVal for Option<TokenTree> {
     fn push_valtype(list: &mut Vec<ValType>) {
@@ -271,33 +235,5 @@ unsafe impl WasmRet for Bound<usize> {
         };
 
         (*ptr).of.i32 = ((data as u32) << 2 | tag) as i32;
-    }
-}
-
-#[cfg(feature = "nightly")]
-unsafe impl WasmVal for LineColumn {
-    fn push_valtype(list: &mut Vec<ValType>) {
-        list.push(ValType::i64());
-    }
-}
-
-#[cfg(feature = "nightly")]
-unsafe impl WasmArg for LineColumn {
-    unsafe fn from(ptr: *const wasm_val_t) -> (Self, *const wasm_val_t) {
-        let raw = (*ptr).of.i64 as u64;
-        (
-            LineColumn {
-                line: (raw >> 32) as usize,
-                column: (raw & 0xFFFF_FFFF) as usize,
-            },
-            ptr.offset(2),
-        )
-    }
-}
-
-#[cfg(feature = "nightly")]
-unsafe impl WasmRet for LineColumn {
-    unsafe fn into(value: Self, ptr: *mut wasm_val_t) {
-        (*ptr).of.i64 = ((value.line as u64) << 32 | (value.column as u64)) as i64;
     }
 }

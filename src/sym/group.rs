@@ -39,28 +39,10 @@ pub fn group_span(handle: Handle<Group>) -> Handle<Span> {
     })
 }
 
-#[cfg(feature = "nightly")]
-pub fn group_span_open(handle: Handle<Group>) -> Handle<Span> {
-    Data::with(|d| {
-        let span = d.group[handle].span_open();
-        d.span.push(span)
-    })
-}
-
-#[cfg(not(feature = "nightly"))]
 pub fn group_span_open(_: Handle<Group>) -> Handle<Span> {
     unimplemented!()
 }
 
-#[cfg(feature = "nightly")]
-pub fn group_span_close(handle: Handle<Group>) -> Handle<Span> {
-    Data::with(|d| {
-        let span = d.group[handle].span_close();
-        d.span.push(span)
-    })
-}
-
-#[cfg(not(feature = "nightly"))]
 pub fn group_span_close(_: Handle<Group>) -> Handle<Span> {
     unimplemented!()
 }
