@@ -55,6 +55,12 @@ pub struct LexError {
     _marker: PhantomData<Rc<()>>,
 }
 
+impl LexError {
+    pub fn span(&self) -> Span {
+        Span::call_site()
+    }
+}
+
 impl TokenStream {
     pub fn new() -> Self {
         TokenStream {
