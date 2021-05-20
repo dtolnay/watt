@@ -673,6 +673,23 @@ impl Literal {
     }
 }
 
+impl FromStr for Literal {
+    type Err = LexError;
+
+    fn from_str(repr: &str) -> Result<Self, Self::Err> {
+        let tokens = ffi::parse(repr)?;
+        let mut iter = tokens.into_iter();
+        if let (Some(TokenTree::Literal(literal)), None) = (iter.next(), iter.next()) {
+            if literal.to_string().len() == repr.len() {
+                return Ok(literal);
+            }
+        }
+        Err(LexError {
+            _marker: PhantomData,
+        })
+    }
+}
+
 impl Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
