@@ -1,9 +1,5 @@
 use super::{ffi, Func, FuncRef, MemoryRef, Module, Store, Trap};
-use std::marker;
-use std::mem;
-use std::ops::Deref;
-use std::ptr;
-use std::slice;
+use std::{marker, mem, ops::Deref, ptr, slice};
 
 #[repr(transparent)]
 pub struct Instance {

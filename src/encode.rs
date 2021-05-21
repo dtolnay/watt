@@ -1,4 +1,4 @@
-use crate::data::Data;
+use crate::data::{Data, Handle};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::convert::TryFrom;
 
@@ -115,5 +115,11 @@ impl Encode for Literal {
         self.span().encode(dst, data);
         dst.push(1);
         data.literal.push(self).encode(dst, data);
+    }
+}
+
+impl<T> Encode for Handle<T> {
+    fn encode(self, dst: &mut Vec<u8>, data: &mut Data) {
+        self.id().encode(dst, data)
     }
 }
