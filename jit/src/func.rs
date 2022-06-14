@@ -82,7 +82,7 @@ where
     A::push_valtype(&mut params);
     let mut results = Vec::new();
     R::push_valtype(&mut results);
-    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ty = FuncType::new(ValTypeVec::new(params), ValTypeVec::new(results));
     let ptr = Box::into_raw(Box::new(func));
     return unsafe {
         Func::into_host_func(
@@ -96,8 +96,8 @@ where
 
     unsafe extern "C" fn callback<A, R, F>(
         env: *mut c_void,
-        args: *const ffi::wasm_val_t,
-        results: *mut ffi::wasm_val_t,
+        args: *const ffi::wasm_val_vec_t,
+        results: *mut ffi::wasm_val_vec_t,
     ) -> *mut ffi::wasm_trap_t
     where
         A: WasmArg,
@@ -105,9 +105,9 @@ where
         F: Fn(A) -> R,
     {
         let env = &*(env as *const F);
-        let (a, _args) = A::from(args);
+        let (a, _args) = A::from((*args).data);
         let ret = env(a);
-        R::into(ret, results);
+        R::into(ret, (*results).data);
         ptr::null_mut()
     }
 }
@@ -124,7 +124,7 @@ where
     B::push_valtype(&mut params);
     let mut results = Vec::new();
     R::push_valtype(&mut results);
-    let ty = FuncType::new(ValTypeVec::new(&params), ValTypeVec::new(&results));
+    let ty = FuncType::new(ValTypeVec::new(params), ValTypeVec::new(results));
     let ptr = Box::into_raw(Box::new(func));
     return unsafe {
         Func::into_host_func(
@@ -138,8 +138,8 @@ where
 
     unsafe extern "C" fn callback<A, B, R, F>(
         env: *mut c_void,
-        args: *const ffi::wasm_val_t,
-        results: *mut ffi::wasm_val_t,
+        args: *const ffi::wasm_val_vec_t,
+        results: *mut ffi::wasm_val_vec_t,
     ) -> *mut ffi::wasm_trap_t
     where
         A: WasmArg,
@@ -149,10 +149,10 @@ where
     {
         let env = &*(env as *const F);
         let mem = super::current_memory::with(|m| m.as_slice());
-        let (a, args) = A::from(args);
+        let (a, args) = A::from((*args).data);
         let (b, _args) = B::from(args);
         let ret = env(&mut *mem, a, b);
-        R::into(ret, results);
+        R::into(ret, (*results).data);
         ptr::null_mut()
     }
 }
@@ -170,12 +170,16 @@ impl FuncRef<'_> {
         for _ in 0..self.result_arity() {
             results.push(Val::i32(0));
         }
+        let ffi_args = ffi::wasm_val_vec_t {
+            data: args.as_ptr() as *mut _,
+            size: args.len(),
+        };
+        let mut ffi_results = ffi::wasm_val_vec_t {
+            data: results.as_mut_ptr().cast(),
+            size: results.len(),
+        };
         unsafe {
-            let trap = ffi::wasm_func_call(
-                self.raw,
-                args.as_ptr() as *const ffi::wasm_val_t,
-                results.as_mut_ptr() as *mut ffi::wasm_val_t,
-            );
+            let trap = ffi::wasm_func_call(self.raw, &ffi_args, &mut ffi_results);
             if trap.is_null() {
                 Ok(results)
             } else {

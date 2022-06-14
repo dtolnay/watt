@@ -15,8 +15,8 @@ pub type wasm_message_t = wasm_name_t;
 pub type wasm_func_callback_with_env_t = Option<
     unsafe extern "C" fn(
         env: *mut c_void,
-        args: *const wasm_val_t,
-        results: *mut wasm_val_t,
+        args: *const wasm_val_vec_t,
+        results: *mut wasm_val_vec_t,
     ) -> *mut wasm_trap_t,
 >;
 //pub type wasm_table_size_t = u32;
@@ -91,11 +91,11 @@ pub struct wasm_instance_t {
 //pub struct wasm_frame_t {
 //    _unused: [u8; 0],
 //}
-//#[repr(C)]
-//pub struct wasm_val_vec_t {
-//    pub size: usize,
-//    pub data: *mut wasm_val_t,
-//}
+#[repr(C)]
+pub struct wasm_val_vec_t {
+    pub size: usize,
+    pub data: *mut wasm_val_t,
+}
 #[repr(C)]
 pub struct wasm_val_t {
     pub kind: wasm_valkind_t,
@@ -599,8 +599,8 @@ extern_apis! {
     pub fn wasm_func_result_arity(arg1: *const wasm_func_t) -> usize;
     pub fn wasm_func_call(
         arg1: *const wasm_func_t,
-        args: *const wasm_val_t,
-        results: *mut wasm_val_t,
+        args: *const wasm_val_vec_t,
+        results: *mut wasm_val_vec_t,
     ) -> *mut wasm_trap_t;
     //pub fn wasm_global_delete(arg1: *mut wasm_global_t);
     //pub fn wasm_global_copy(arg1: *const wasm_global_t) -> *mut wasm_global_t;
@@ -737,7 +737,7 @@ extern_apis! {
     pub fn wasm_instance_new(
         arg1: *mut wasm_store_t,
         arg2: *const wasm_module_t,
-        imports: *const *const wasm_extern_t,
+        imports: *const wasm_extern_vec_t,
         arg3: *mut *mut wasm_trap_t,
     ) -> *mut wasm_instance_t;
     pub fn wasm_instance_exports(arg1: *const wasm_instance_t, out: *mut wasm_extern_vec_t);

@@ -125,7 +125,7 @@ fn call(func: &FuncRef, args: &[Val]) -> Val {
 }
 
 fn extern_vals(module: &Module, store: &mut Store) -> InstanceImports {
-    let mut imports = InstanceImports::default();
+    let mut imports = InstanceImports::with_capacity(module.imports().len());
     for import in module.imports().iter() {
         imports.func(mk_host_func(import, store));
     }

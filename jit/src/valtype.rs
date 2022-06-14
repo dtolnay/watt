@@ -34,7 +34,7 @@ pub struct ValTypeVec {
 }
 
 impl ValTypeVec {
-    pub fn new(list: &[ValType]) -> ValTypeVec {
+    pub fn new(mut list: Vec<ValType>) -> ValTypeVec {
         unsafe {
             let mut raw = mem::zeroed();
             ffi::wasm_valtype_vec_new(
@@ -42,6 +42,7 @@ impl ValTypeVec {
                 list.len(),
                 list.as_ptr() as *const *mut ffi::wasm_valtype_t,
             );
+            list.set_len(0);
             ValTypeVec { raw }
         }
     }
