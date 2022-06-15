@@ -19,8 +19,11 @@ impl Instance {
         unsafe {
             assert_eq!(module.imports().len(), imports.imports.len());
             let mut trap = ptr::null_mut();
-            let raw =
-                ffi::wasm_instance_new(store.raw, module.raw, imports.imports.as_ptr(), &mut trap);
+            let imports = ffi::wasm_extern_vec_t {
+                data: imports.imports.as_ptr() as *mut _,
+                size: imports.imports.len(),
+            };
+            let raw = ffi::wasm_instance_new(store.raw, module.raw, &imports, &mut trap);
             if raw.is_null() {
                 assert!(!trap.is_null());
                 Err(Trap { raw: trap })
@@ -47,13 +50,19 @@ impl Drop for Instance {
     }
 }
 
-#[derive(Default)]
 pub struct InstanceImports {
     imports: Vec<*const ffi::wasm_extern_t>,
     funcs: Vec<Func>,
 }
 
 impl InstanceImports {
+    pub fn with_capacity(n: usize) -> InstanceImports {
+        InstanceImports {
+            imports: Vec::with_capacity(n),
+            funcs: Vec::with_capacity(n),
+        }
+    }
+
     pub fn func(&mut self, func: Func) {
         self.imports
             .push(unsafe { ffi::wasm_func_as_extern(func.raw) });
