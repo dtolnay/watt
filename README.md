@@ -172,10 +172,10 @@ crate, to the src directory of your shim crate, and it's ready to publish!
 
 To assist in convincing you that this is real, [here is serde\_derive compiled
 to Wasm][wa-serde-derive]. It was compiled from the commit
-[serde-rs/serde@37bf6984][commit]. Feel free to try it out as:
+[serde-rs/serde@1afae183][commit]. Feel free to try it out as:
 
 [wa-serde-derive]: https://crates.io/crates/wa-serde-derive
-[commit]: https://github.com/serde-rs/serde/commit/37bf69847ca5144e1277038be99ec1fcff378cc9
+[commit]: https://github.com/serde-rs/serde/commit/1afae183b06ffe47d054c796e68630752414cf9e
 
 ```rust
 // [dependencies]
