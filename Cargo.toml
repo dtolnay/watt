@@ -2,12 +2,9 @@
 name = "watt"
 version = "0.4.1"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
-license = "MIT OR Apache-2.0"
-description = "Runtime for executing Rust procedural macros compiled as WebAssembly."
-repository = "https://github.com/dtolnay/watt"
-documentation = "https://docs.rs/watt"
 categories = ["development-tools::procedural-macro-helpers"]
-readme = "README.md"
+description = "Runtime for executing Rust procedural macros compiled as WebAssembly."
+documentation = "https://docs.rs/watt"
 edition = "2018"
 include = [
     "LICENSE_APACHE",
@@ -17,6 +14,9 @@ include = [
     "runtime/src/*",
     "src/*",
 ]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dtolnay/watt"
 
 [workspace]
 members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
