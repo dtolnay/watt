@@ -1,6 +1,6 @@
 [package]
 name = "watt"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 categories = ["development-tools::procedural-macro-helpers", "wasm"]
 description = "Runtime for executing Rust procedural macros compiled as WebAssembly."
