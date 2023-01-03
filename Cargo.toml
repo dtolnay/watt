@@ -21,6 +21,9 @@ repository = "https://github.com/dtolnay/watt"
 [workspace]
 members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
 
+[lib]
+doc-scrape-examples = false
+
 [patch.crates-io]
 watt = { path = "." }
 
