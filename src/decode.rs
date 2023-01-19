@@ -1,9 +1,11 @@
 #![allow(clippy::identity_op)]
 
-use crate::data::Data;
+use crate::data::{Data, Handle};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::char;
-use std::str::{self, FromStr};
+use std::{
+    char,
+    str::{self, FromStr},
+};
 
 pub fn decode(mut bytes: &[u8], data: &Data) -> TokenStream {
     let ret = TokenStream::decode(&mut bytes, data);
@@ -72,7 +74,7 @@ impl Decode for Span {
         if idx == u32::max_value() {
             Span::call_site()
         } else {
-            data.span[idx]
+            data.span[Handle::new(idx)]
         }
     }
 }
@@ -140,7 +142,8 @@ impl Decode for Literal {
             literal.set_span(span);
             literal
         } else {
-            let mut literal = data.literal[u32::decode(bytes, data)].clone();
+            let id = u32::decode(bytes, data);
+            let mut literal = data.literal[Handle::new(id)].clone();
             literal.set_span(span);
             literal
         }

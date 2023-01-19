@@ -30,8 +30,9 @@ jobs:
       - run: cargo run --manifest-path demo/caller/Cargo.toml
       - run: cargo test --manifest-path runtime/tests/Cargo.toml
       - run: cargo test --manifest-path proc-macro/Cargo.toml
+      - run: cargo check --features proc-macro-server
       - run: WATT_JIT=1 cargo check
-
+  
   msrv:
     name: Rust 1.35.0
     runs-on: ubuntu-latest

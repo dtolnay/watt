@@ -11,6 +11,10 @@ impl ValType {
         ValType::new(ffi::WASM_I32)
     }
 
+    pub fn i64() -> ValType {
+        ValType::new(ffi::WASM_I64)
+    }
+
     fn new(kind: ffi::wasm_valkind_t) -> ValType {
         unsafe {
             let raw = ffi::wasm_valtype_new(kind);

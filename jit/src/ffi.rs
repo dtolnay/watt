@@ -1,9 +1,11 @@
 #![allow(bad_style)]
 #![deny(dead_code)]
 
-use std::ffi::c_void;
-use std::mem;
-use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
+use std::{
+    ffi::c_void,
+    mem,
+    sync::atomic::{AtomicUsize, Ordering::SeqCst},
+};
 
 pub type wasm_name_t = wasm_byte_vec_t;
 pub type wasm_valkind_t = u8;
@@ -23,7 +25,7 @@ pub type wasm_func_callback_with_env_t = Option<
 //pub type wasm_memory_pages_t = u32;
 //pub type wasm_mutability_t = u8;
 pub const WASM_I32: wasm_valkind_t = 0;
-//pub const WASM_I64: wasm_valkind_t = 1;
+pub const WASM_I64: wasm_valkind_t = 1;
 //pub const WASM_F32: wasm_valkind_t = 2;
 //pub const WASM_F64: wasm_valkind_t = 3;
 

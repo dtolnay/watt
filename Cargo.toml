@@ -19,7 +19,11 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/watt"
 
 [workspace]
-members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro"]
+members = ["demo/caller", "demo/wa", "runtime/tests", "proc-macro", "watt-proc-server"]
+
+[features]
+default = []
+proc-macro-server = []
 
 [lib]
 doc-scrape-examples = false

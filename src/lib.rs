@@ -203,10 +203,13 @@ mod exec;
 mod runtime;
 
 mod data;
-mod decode;
-mod encode;
 mod import;
 mod sym;
+
+#[cfg(not(feature = "proc-macro-server"))]
+mod decode;
+#[cfg(not(feature = "proc-macro-server"))]
+mod encode;
 
 use proc_macro::TokenStream;
 use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};

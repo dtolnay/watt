@@ -1,15 +1,19 @@
-use crate::data::Data;
-use crate::import;
-use crate::runtime::{
-    alloc_func, decode_module, get_export, init_store, instantiate_module, invoke_func,
-    module_imports, Extern, ExternVal, FuncAddr, Module, ModuleInst, Store, Value,
+use crate::{
+    data::{Data, Handle},
+    import,
+    runtime::{
+        alloc_func, decode_module, get_export, init_store, instantiate_module, invoke_func,
+        module_imports, Extern, ExternVal, FuncAddr, Module, ModuleInst, Store, Value,
+    },
+    WasmMacro,
 };
-use crate::WasmMacro;
 use proc_macro::TokenStream;
-use std::cell::RefCell;
-use std::collections::hash_map::{Entry, HashMap};
-use std::io::Cursor;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    collections::hash_map::{Entry, HashMap},
+    io::Cursor,
+    rc::Rc,
+};
 
 struct ThreadState {
     store: Store,
@@ -50,30 +54,34 @@ pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> 
         let exports = Exports::collect(instance, fun);
 
         let _guard = Data::guard();
-        let raws: Vec<Value> = Data::with(|d| {
+        let args: Vec<Value> = Data::with(|d| {
             inputs
                 .into_iter()
-                .map(|input| Value::I32(d.tokenstream.push(input)))
+                .map(|input| Value::I32(d.tokenstream.push(input).id()))
                 .collect()
         });
-
-        let args: Vec<Value> = raws
+        #[cfg(not(feature = "proc-macro-server"))]
+        let args: Vec<Value> = args
             .into_iter()
             .map(|raw| call(state, exports.raw_to_token_stream, vec![raw]))
             .collect();
+
         let output = call(state, exports.main, args);
-        let raw = call(state, exports.token_stream_into_raw, vec![output]);
-        let handle = match raw {
-            Value::I32(handle) => handle,
+        #[cfg(not(feature = "proc-macro-server"))]
+        let output = call(state, exports.token_stream_into_raw, vec![output]);
+        let output = match output {
+            Value::I32(handle) => Handle::new(handle),
             _ => unimplemented!("unexpected macro return type"),
         };
-        Data::with(|d| d.tokenstream[handle].clone())
+        Data::with(|d| d.tokenstream[output].clone())
     })
 }
 
 struct Exports {
     main: FuncAddr,
+    #[cfg(not(feature = "proc-macro-server"))]
     raw_to_token_stream: FuncAddr,
+    #[cfg(not(feature = "proc-macro-server"))]
     token_stream_into_raw: FuncAddr,
 }
 
@@ -83,17 +91,21 @@ impl Exports {
             Ok(ExternVal::Func(main)) => main,
             _ => unimplemented!("unresolved macro: {:?}", entry_point),
         };
+        #[cfg(not(feature = "proc-macro-server"))]
         let raw_to_token_stream = match get_export(instance, "raw_to_token_stream") {
             Ok(ExternVal::Func(func)) => func,
             _ => unimplemented!("raw_to_token_stream not found"),
         };
+        #[cfg(not(feature = "proc-macro-server"))]
         let token_stream_into_raw = match get_export(instance, "token_stream_into_raw") {
             Ok(ExternVal::Func(func)) => func,
             _ => unimplemented!("token_stream_into_raw not found"),
         };
         Exports {
             main,
+            #[cfg(not(feature = "proc-macro-server"))]
             raw_to_token_stream,
+            #[cfg(not(feature = "proc-macro-server"))]
             token_stream_into_raw,
         }
     }

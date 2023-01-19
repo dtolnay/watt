@@ -1,6 +1,12 @@
-use proc_macro::{Literal, Span, TokenStream};
-use std::cell::RefCell;
-use std::ops::{Index, IndexMut};
+use proc_macro::{token_stream::IntoIter, Group, Ident, Literal, Punct, Span, TokenStream};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+    num::NonZeroU32,
+    ops::{Index, IndexMut},
+};
 
 thread_local! {
     static DATA: RefCell<Data> = RefCell::new(Data::default());
@@ -8,9 +14,13 @@ thread_local! {
 
 #[derive(Default)]
 pub struct Data {
+    pub group: Collection<Group>,
+    pub punct: Collection<Punct>,
+    pub ident: Collection<Ident>,
     pub string: Collection<String>,
     pub bytes: Collection<Vec<u8>>,
     pub tokenstream: Collection<TokenStream>,
+    pub token_stream_iter: Collection<IntoIter>,
     pub literal: Collection<Literal>,
     pub span: Collection<Span>,
 }
@@ -33,36 +43,93 @@ impl Data {
     }
 }
 
-pub struct Collection<T> {
-    vec: Vec<T>,
+pub struct Handle<T> {
+    id: NonZeroU32,
+    _marker: PhantomData<*const T>,
 }
 
-pub type Handle = u32;
+impl<T> Handle<T> {
+    pub fn new(id: u32) -> Self {
+        Handle {
+            id: NonZeroU32::new(id).unwrap(),
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id.into()
+    }
+}
+
+impl<T> Clone for Handle<T> {
+    fn clone(&self) -> Self {
+        Handle {
+            id: self.id,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<T> Copy for Handle<T> {}
+
+impl<T> PartialEq for Handle<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl<T> Eq for Handle<T> {}
+
+impl<T> Hash for Handle<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state)
+    }
+}
+
+pub struct Collection<T> {
+    cnt: Handle<T>,
+    data: HashMap<Handle<T>, T>,
+}
 
 impl<T> Collection<T> {
-    pub fn push(&mut self, value: T) -> Handle {
-        let handle = self.vec.len();
-        self.vec.push(value);
-        handle as Handle
+    pub fn push(&mut self, value: T) -> Handle<T> {
+        let id: u32 = self.cnt.id.into();
+        self.cnt.id = NonZeroU32::new(id + 1).unwrap();
+        let handle = self.cnt;
+
+        self.data.insert(handle, value);
+        handle
+    }
+
+    pub fn take(&mut self, handle: Handle<T>) -> T {
+        self.data.remove(&handle).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn insert(&mut self, handle: Handle<T>, value: T) {
+        self.data.insert(handle, value);
     }
 }
 
-impl<T> Index<Handle> for Collection<T> {
+impl<T> Index<Handle<T>> for Collection<T> {
     type Output = T;
 
-    fn index(&self, handle: Handle) -> &Self::Output {
-        &self.vec[handle as usize]
+    fn index(&self, handle: Handle<T>) -> &Self::Output {
+        &self.data[&handle]
     }
 }
 
-impl<T> IndexMut<Handle> for Collection<T> {
-    fn index_mut(&mut self, handle: Handle) -> &mut Self::Output {
-        &mut self.vec[handle as usize]
+impl<T> IndexMut<Handle<T>> for Collection<T> {
+    fn index_mut(&mut self, handle: Handle<T>) -> &mut Self::Output {
+        self.data.get_mut(&handle).unwrap()
     }
 }
 
 impl<T> Default for Collection<T> {
     fn default() -> Self {
-        Collection { vec: Vec::new() }
+        Collection {
+            cnt: Handle::new(1),
+            data: HashMap::new(),
+        }
     }
 }
