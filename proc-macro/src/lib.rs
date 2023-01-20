@@ -439,12 +439,11 @@ impl Ident {
     }
 
     fn validate(string: &str, raw: bool) {
-        let validate = string;
-        if validate.is_empty() {
+        if string.is_empty() {
             panic!("Ident is not allowed to be empty; use Option<Ident>");
         }
 
-        if validate.bytes().all(|digit| digit >= b'0' && digit <= b'9') {
+        if string.bytes().all(|digit| digit >= b'0' && digit <= b'9') {
             panic!("Ident cannot be a number; use Literal instead");
         }
 
@@ -462,7 +461,7 @@ impl Ident {
             true
         }
 
-        if !ident_ok(validate) {
+        if !ident_ok(string) {
             panic!("{:?} is not a valid Ident", string);
         }
 
