@@ -19,7 +19,7 @@ fn main() {
             .split('.')
             .next()
             .unwrap()
-            .replace("-", "_");
+            .replace('-', "_");
 
         write!(
             f,
