@@ -185,7 +185,6 @@
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
 #![allow(
-    clippy::cast_lossless,
     clippy::cast_possible_truncation,
     clippy::doc_markdown,
     clippy::manual_let_else,

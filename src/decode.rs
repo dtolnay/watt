@@ -79,10 +79,10 @@ impl Decode for Span {
 
 impl Decode for u32 {
     fn decode(bytes: &mut &[u8], _data: &Data) -> Self {
-        let ret = ((bytes[0] as u32) << 0)
-            | ((bytes[1] as u32) << 8)
-            | ((bytes[2] as u32) << 16)
-            | ((bytes[3] as u32) << 24);
+        let ret = (u32::from(bytes[0]) << 0)
+            | (u32::from(bytes[1]) << 8)
+            | (u32::from(bytes[2]) << 16)
+            | (u32::from(bytes[3]) << 24);
         *bytes = &bytes[4..];
         ret
     }
