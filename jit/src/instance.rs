@@ -98,26 +98,26 @@ pub struct Extern {
 impl Extern {
     pub fn func(&self) -> Option<FuncRef<'_>> {
         unsafe {
-            if ffi::wasm_extern_kind(self.raw) != ffi::WASM_EXTERN_FUNC {
-                None
-            } else {
+            if ffi::wasm_extern_kind(self.raw) == ffi::WASM_EXTERN_FUNC {
                 Some(FuncRef {
                     raw: ffi::wasm_extern_as_func(self.raw),
                     _marker: marker::PhantomData,
                 })
+            } else {
+                None
             }
         }
     }
 
     pub fn memory(&self) -> Option<MemoryRef<'_>> {
         unsafe {
-            if ffi::wasm_extern_kind(self.raw) != ffi::WASM_EXTERN_MEMORY {
-                None
-            } else {
+            if ffi::wasm_extern_kind(self.raw) == ffi::WASM_EXTERN_MEMORY {
                 Some(MemoryRef {
                     raw: ffi::wasm_extern_as_memory(self.raw),
                     _marker: marker::PhantomData,
                 })
+            } else {
+                None
             }
         }
     }

@@ -12,7 +12,6 @@
 #![allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
-    clippy::if_not_else,
     clippy::items_after_statements,
     clippy::missing_safety_doc,
     clippy::module_name_repetitions,
