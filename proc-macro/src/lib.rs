@@ -22,7 +22,7 @@ use crate::rc::Rc;
 use std::char;
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::fmt::{self, Debug, Display};
+use std::fmt::{self, Debug, Display, Write as _};
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -663,7 +663,9 @@ impl Literal {
                 b'"' => escaped.push_str("\\\""),
                 b'\\' => escaped.push_str("\\\\"),
                 b'\x20'..=b'\x7E' => escaped.push(*b as char),
-                _ => escaped.push_str(&format!("\\x{:02X}", b)),
+                _ => {
+                    let _ = write!(escaped, "\\x{:02X}", b);
+                }
             }
         }
         escaped.push('"');
