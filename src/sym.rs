@@ -30,11 +30,11 @@ pub fn string_read(memory: &mut [u8], string: u32, ptr: u32) {
         let ptr = ptr as usize;
         let string = &d.string[string];
         memory[ptr..ptr + string.len()].copy_from_slice(string.as_bytes());
-    })
+    });
 }
 
 pub fn print_panic(string: u32) {
-    Data::with(|d| panic!("{}", d.string[string]))
+    Data::with(|d| panic!("{}", d.string[string]));
 }
 
 pub fn bytes_len(bytes: u32) -> u32 {
@@ -46,7 +46,7 @@ pub fn bytes_read(memory: &mut [u8], bytes: u32, ptr: u32) {
         let ptr = ptr as usize;
         let bytes = &d.bytes[bytes];
         memory[ptr..ptr + bytes.len()].copy_from_slice(bytes);
-    })
+    });
 }
 
 pub fn token_stream_serialize(stream: u32) -> u32 {
