@@ -413,23 +413,12 @@ pub struct Ident {
 
 impl Ident {
     fn _new(string: &str, raw: bool, span: Span) -> Self {
-        Ident::validate(string);
-
-        if raw && !Self::can_be_raw(string) {
-            panic!("`{}` cannot be a raw identifier", string);
-        }
+        Ident::validate(string, raw);
 
         Ident {
             sym: intern(string),
             span,
             raw,
-        }
-    }
-
-    fn can_be_raw(string: &str) -> bool {
-        match string {
-            "" | "_" | "super" | "self" | "Self" | "crate" | "$crate" | "{{root}}" => false,
-            _ => true,
         }
     }
 
@@ -449,7 +438,7 @@ impl Ident {
         self.span = span;
     }
 
-    fn validate(string: &str) {
+    fn validate(string: &str, raw: bool) {
         let validate = string;
         if validate.is_empty() {
             panic!("Ident is not allowed to be empty; use Option<Ident>");
@@ -475,6 +464,12 @@ impl Ident {
 
         if !ident_ok(validate) {
             panic!("{:?} is not a valid Ident", string);
+        }
+
+        if raw {
+            if let "" | "_" | "super" | "self" | "Self" | "crate" | "$crate" | "{{root}}" = string {
+                panic!("`{}` cannot be a raw identifier", string);
+            }
         }
 
         #[inline]
