@@ -6,7 +6,6 @@
     clippy::manual_range_contains,
     clippy::manual_strip,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
     clippy::trivially_copy_pass_by_ref,
     clippy::uninit_vec,
     clippy::uninlined_format_args
@@ -156,9 +155,9 @@ impl Display for TokenStream {
                         Delimiter::None => ("", ""),
                     };
                     if tt.stream().into_iter().next().is_none() {
-                        write!(f, "{} {}", start, end)?
+                        write!(f, "{} {}", start, end)?;
                     } else {
-                        write!(f, "{} {} {}", start, tt.stream(), end)?
+                        write!(f, "{} {} {}", start, tt.stream(), end)?;
                     }
                 }
                 TokenTree::Ident(ref tt) => write!(f, "{}", tt)?,

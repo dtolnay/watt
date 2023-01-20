@@ -73,7 +73,7 @@ impl Encode for u32 {
 
 impl Encode for usize {
     fn encode(self, dst: &mut Vec<u8>) {
-        u32::try_from(self).unwrap().encode(dst)
+        u32::try_from(self).unwrap().encode(dst);
     }
 }
 
