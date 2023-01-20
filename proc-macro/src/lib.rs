@@ -415,10 +415,21 @@ impl Ident {
     fn _new(string: &str, raw: bool, span: Span) -> Self {
         Ident::validate(string);
 
+        if raw && !Self::can_be_raw(string) {
+            panic!("`{}` cannot be a raw identifier", string);
+        }
+
         Ident {
             sym: intern(string),
             span,
             raw,
+        }
+    }
+
+    fn can_be_raw(string: &str) -> bool {
+        match string {
+            "" | "_" | "super" | "self" | "Self" | "crate" | "$crate" | "{{root}}" => false,
+            _ => true,
         }
     }
 
