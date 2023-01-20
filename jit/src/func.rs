@@ -1,4 +1,4 @@
-use super::{ffi, FuncType, MemoryRef, Store, Trap, Val, ValType, ValTypeVec};
+use super::{ffi, FuncType, Store, Trap, Val, ValType, ValTypeVec};
 use std::ffi::c_void;
 use std::marker;
 use std::ptr;
@@ -148,7 +148,7 @@ where
         F: Fn(&mut [u8], A, B) -> R,
     {
         let env = &*(env as *const F);
-        let mem = super::current_memory::with(MemoryRef::as_slice);
+        let mem = super::current_memory::with(|m| m.as_slice());
         let (a, args) = A::from((*args).data);
         let (b, _args) = B::from(args);
         let ret = env(&mut *mem, a, b);
