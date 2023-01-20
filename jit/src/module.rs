@@ -91,7 +91,7 @@ impl ImportType {
 impl Drop for ImportType {
     fn drop(&mut self) {
         eprintln!("drop import type");
-        panic!()
+        panic!();
         // unsafe {
         //     ffi::wasm_importtype_delete(self.raw);
         // }
@@ -145,7 +145,7 @@ impl ExportType {
 impl Drop for ExportType {
     fn drop(&mut self) {
         eprintln!("drop export type");
-        panic!()
+        panic!();
         // unsafe {
         //     ffi::wasm_exporttype_delete(self.raw);
         // }

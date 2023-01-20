@@ -59,6 +59,6 @@ impl ValTypeVec {
 impl Drop for ValTypeVec {
     fn drop(&mut self) {
         eprintln!("drop valtype vec");
-        panic!()
+        panic!();
     }
 }

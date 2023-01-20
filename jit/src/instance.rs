@@ -126,7 +126,7 @@ impl Extern {
 impl Drop for Extern {
     fn drop(&mut self) {
         eprintln!("drop extern");
-        panic!()
+        panic!();
         // unsafe {
         //     ffi::wasm_extern_delete(self.raw);
         // }
