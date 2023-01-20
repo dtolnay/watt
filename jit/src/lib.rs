@@ -10,15 +10,11 @@
 //! [1]: https://github.com/WebAssembly/wasm-c-api
 
 #![allow(
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
     clippy::items_after_statements,
     clippy::missing_safety_doc,
     clippy::module_name_repetitions,
     clippy::redundant_closure_for_method_calls, // https://github.com/rust-lang/rust-clippy/issues/9335
     clippy::transmute_ptr_to_ptr,
-    clippy::useless_transmute,
-    clippy::wrong_self_convention
 )]
 
 use std::slice;
