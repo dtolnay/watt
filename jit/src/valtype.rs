@@ -40,7 +40,7 @@ impl ValTypeVec {
             ffi::wasm_valtype_vec_new(
                 &mut raw,
                 list.len(),
-                list.as_ptr() as *const *mut ffi::wasm_valtype_t,
+                list.as_ptr().cast::<*mut ffi::wasm_valtype_t>(),
             );
             list.set_len(0);
             ValTypeVec { raw }

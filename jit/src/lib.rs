@@ -15,7 +15,6 @@
     clippy::items_after_statements,
     clippy::missing_safety_doc,
     clippy::module_name_repetitions,
-    clippy::ptr_as_ptr,
     clippy::redundant_closure_for_method_calls,
     clippy::semicolon_if_nothing_returned,
     clippy::transmute_ptr_to_ptr,

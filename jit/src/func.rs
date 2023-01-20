@@ -69,7 +69,7 @@ unsafe impl WasmRet for () {
 }
 
 unsafe extern "C" fn dtor<T>(env: *mut c_void) {
-    drop(Box::from_raw(env as *mut T));
+    drop(Box::from_raw(env.cast::<T>()));
 }
 
 pub fn func1<A, R, F>(func: F, store: &Store) -> Func
@@ -89,7 +89,7 @@ where
             store,
             &ty,
             Some(callback::<A, R, F>),
-            ptr as *mut c_void,
+            ptr.cast::<c_void>(),
             dtor::<F>,
         )
     };
@@ -131,7 +131,7 @@ where
             store,
             &ty,
             Some(callback::<A, B, R, F>),
-            ptr as *mut c_void,
+            ptr.cast::<c_void>(),
             dtor::<F>,
         )
     };
