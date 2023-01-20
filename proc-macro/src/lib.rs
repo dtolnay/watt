@@ -567,9 +567,9 @@ macro_rules! unsuffixed_numbers {
 }
 
 impl Literal {
-    fn _new(text: String) -> Self {
+    fn _new(repr: String) -> Self {
         Literal {
-            kind: LiteralKind::Local(intern(text)),
+            kind: LiteralKind::Local(intern(repr)),
             span: Span::call_site(),
         }
     }
@@ -624,31 +624,31 @@ impl Literal {
     }
 
     pub fn string(t: &str) -> Self {
-        let mut text = String::with_capacity(t.len() + 2);
-        text.push('"');
+        let mut repr = String::with_capacity(t.len() + 2);
+        repr.push('"');
         for c in t.chars() {
             if c == '\'' {
                 // escape_default turns this into "\'" which is unnecessary.
-                text.push(c);
+                repr.push(c);
             } else {
-                text.extend(c.escape_default());
+                repr.extend(c.escape_default());
             }
         }
-        text.push('"');
-        Literal::_new(text)
+        repr.push('"');
+        Literal::_new(repr)
     }
 
     pub fn character(t: char) -> Self {
-        let mut text = String::new();
-        text.push('\'');
+        let mut repr = String::new();
+        repr.push('\'');
         if t == '"' {
             // escape_default turns this into '\"' which is unnecessary.
-            text.push(t);
+            repr.push(t);
         } else {
-            text.extend(t.escape_default());
+            repr.extend(t.escape_default());
         }
-        text.push('\'');
-        Literal::_new(text)
+        repr.push('\'');
+        Literal::_new(repr)
     }
 
     #[allow(clippy::match_overlapping_arm)]
