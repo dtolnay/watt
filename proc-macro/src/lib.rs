@@ -466,7 +466,7 @@ impl Ident {
         }
 
         if raw {
-            if let "" | "_" | "super" | "self" | "Self" | "crate" | "$crate" | "{{root}}" = string {
+            if let "_" | "super" | "self" | "Self" | "crate" = string {
                 panic!("`{}` cannot be a raw identifier", string);
             }
         }
