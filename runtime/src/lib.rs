@@ -1,11 +1,27 @@
 #![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::cloned_instead_of_copied,
     clippy::cognitive_complexity,
+    clippy::enum_glob_use,
     clippy::float_cmp,
+    clippy::if_not_else,
     clippy::let_unit_value,
+    clippy::match_on_vec_items,
     clippy::module_inception,
+    clippy::module_name_repetitions,
     clippy::new_without_default,
+    clippy::ptr_arg,
+    clippy::redundant_else,
+    clippy::redundant_slicing,
     clippy::too_many_arguments,
-    clippy::unreadable_literal
+    clippy::too_many_lines,
+    clippy::unnecessary_cast,
+    clippy::unnecessary_wraps,
+    clippy::unreadable_literal,
+    clippy::unused_self,
+    clippy::wildcard_imports,
+    clippy::wrong_self_convention
 )]
 
 #[macro_use]

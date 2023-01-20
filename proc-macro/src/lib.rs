@@ -1,4 +1,16 @@
-#![allow(clippy::identity_op, clippy::trivially_copy_pass_by_ref)]
+#![allow(
+    clippy::cast_lossless,
+    clippy::identity_op,
+    clippy::items_after_statements,
+    clippy::manual_assert,
+    clippy::manual_range_contains,
+    clippy::manual_strip,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::uninit_vec,
+    clippy::uninlined_format_args
+)]
 
 extern crate proc_macro;
 

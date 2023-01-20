@@ -184,6 +184,18 @@
 //!
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
+#![allow(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::doc_markdown,
+    clippy::manual_let_else,
+    clippy::must_use_candidate,
+    clippy::needless_borrow,
+    clippy::needless_lifetimes,
+    clippy::needless_pass_by_value,
+    clippy::semicolon_if_nothing_returned
+)]
+
 extern crate proc_macro;
 
 #[cfg(not(jit))]
