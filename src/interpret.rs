@@ -127,7 +127,7 @@ fn mk_host_func(import: Import, store: &mut Store) -> ExternVal {
         }
     };
     let hostfunc = import::host_func(name, store);
-    ExternVal::Func(alloc_func(store, &func, hostfunc))
+    ExternVal::Func(alloc_func(store, func, hostfunc))
 }
 
 #[cfg(watt_debug)]

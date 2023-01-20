@@ -189,7 +189,6 @@
     clippy::doc_markdown,
     clippy::manual_let_else,
     clippy::must_use_candidate,
-    clippy::needless_borrow,
     clippy::needless_lifetimes,
     clippy::needless_pass_by_value,
     clippy::semicolon_if_nothing_returned
