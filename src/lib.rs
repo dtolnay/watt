@@ -186,6 +186,8 @@
 
 #![allow(
     clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
     clippy::doc_markdown,
     clippy::manual_let_else,
     clippy::must_use_candidate,
