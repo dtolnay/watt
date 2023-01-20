@@ -248,25 +248,25 @@ impl TokenTree {
 }
 
 impl From<Group> for TokenTree {
-    fn from(g: Group) -> TokenTree {
+    fn from(g: Group) -> Self {
         TokenTree::Group(g)
     }
 }
 
 impl From<Ident> for TokenTree {
-    fn from(g: Ident) -> TokenTree {
+    fn from(g: Ident) -> Self {
         TokenTree::Ident(g)
     }
 }
 
 impl From<Punct> for TokenTree {
-    fn from(g: Punct) -> TokenTree {
+    fn from(g: Punct) -> Self {
         TokenTree::Punct(g)
     }
 }
 
 impl From<Literal> for TokenTree {
-    fn from(g: Literal) -> TokenTree {
+    fn from(g: Literal) -> Self {
         TokenTree::Literal(g)
     }
 }
@@ -412,7 +412,7 @@ pub struct Ident {
 }
 
 impl Ident {
-    fn _new(string: &str, raw: bool, span: Span) -> Ident {
+    fn _new(string: &str, raw: bool, span: Span) -> Self {
         Ident::validate(string);
 
         Ident {
@@ -422,11 +422,11 @@ impl Ident {
         }
     }
 
-    pub fn new(string: &str, span: Span) -> Ident {
+    pub fn new(string: &str, span: Span) -> Self {
         Ident::_new(string, false, span)
     }
 
-    pub fn new_raw(string: &str, span: Span) -> Ident {
+    pub fn new_raw(string: &str, span: Span) -> Self {
         Ident::_new(string, true, span)
     }
 
@@ -552,7 +552,7 @@ enum LiteralKind {
 
 macro_rules! suffixed_numbers {
     ($($name:ident => $kind:ident,)*) => ($(
-        pub fn $name(n: $kind) -> Literal {
+        pub fn $name(n: $kind) -> Self {
             Literal::_new(format!(concat!("{}", stringify!($kind)), n))
         }
     )*)
@@ -560,14 +560,14 @@ macro_rules! suffixed_numbers {
 
 macro_rules! unsuffixed_numbers {
     ($($name:ident => $kind:ident,)*) => ($(
-        pub fn $name(n: $kind) -> Literal {
+        pub fn $name(n: $kind) -> Self {
             Literal::_new(n.to_string())
         }
     )*)
 }
 
 impl Literal {
-    fn _new(text: String) -> Literal {
+    fn _new(text: String) -> Self {
         Literal {
             kind: LiteralKind::Local(intern(text)),
             span: Span::call_site(),
@@ -607,7 +607,7 @@ impl Literal {
         i128_unsuffixed => i128,
     }
 
-    pub fn f32_unsuffixed(f: f32) -> Literal {
+    pub fn f32_unsuffixed(f: f32) -> Self {
         let mut s = f.to_string();
         if !s.contains('.') {
             s.push_str(".0");
@@ -615,7 +615,7 @@ impl Literal {
         Literal::_new(s)
     }
 
-    pub fn f64_unsuffixed(f: f64) -> Literal {
+    pub fn f64_unsuffixed(f: f64) -> Self {
         let mut s = f.to_string();
         if !s.contains('.') {
             s.push_str(".0");
@@ -623,7 +623,7 @@ impl Literal {
         Literal::_new(s)
     }
 
-    pub fn string(t: &str) -> Literal {
+    pub fn string(t: &str) -> Self {
         let mut text = String::with_capacity(t.len() + 2);
         text.push('"');
         for c in t.chars() {
@@ -638,7 +638,7 @@ impl Literal {
         Literal::_new(text)
     }
 
-    pub fn character(t: char) -> Literal {
+    pub fn character(t: char) -> Self {
         let mut text = String::new();
         text.push('\'');
         if t == '"' {
@@ -652,7 +652,7 @@ impl Literal {
     }
 
     #[allow(clippy::match_overlapping_arm)]
-    pub fn byte_string(bytes: &[u8]) -> Literal {
+    pub fn byte_string(bytes: &[u8]) -> Self {
         let mut escaped = "b\"".to_string();
         for b in bytes {
             match *b {
