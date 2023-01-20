@@ -15,7 +15,7 @@
     clippy::items_after_statements,
     clippy::missing_safety_doc,
     clippy::module_name_repetitions,
-    clippy::redundant_closure_for_method_calls,
+    clippy::redundant_closure_for_method_calls, // https://github.com/rust-lang/rust-clippy/issues/9335
     clippy::semicolon_if_nothing_returned,
     clippy::transmute_ptr_to_ptr,
     clippy::useless_transmute,
