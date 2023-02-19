@@ -32,6 +32,9 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
           target: wasm32-unknown-unknown
+      - name: Enable type layout randomization
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+        if: matrix.rust == 'nightly'
       - run: cargo build --manifest-path demo/impl/Cargo.toml --release --target wasm32-unknown-unknown
       - run: cargo run --manifest-path demo/caller/Cargo.toml
       - run: cargo test --manifest-path runtime/tests/Cargo.toml
