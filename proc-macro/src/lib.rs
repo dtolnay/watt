@@ -345,6 +345,10 @@ impl Group {
         self.span.close
     }
 
+    pub fn delim_span(&self) -> DelimSpan {
+        self.span
+    }
+
     pub fn set_span(&mut self, span: Span) {
         self.span.join = span;
         self.span.open = span;
