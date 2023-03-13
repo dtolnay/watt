@@ -48,6 +48,8 @@ impl Encode for Group {
     fn encode(self, dst: &mut Vec<u8>, data: &mut Data) {
         self.delimiter().encode(dst, data);
         self.span().encode(dst, data);
+        self.span_open().encode(dst, data);
+        self.span_close().encode(dst, data);
         self.stream().encode(dst, data);
     }
 }

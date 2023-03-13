@@ -1,6 +1,6 @@
 use crate::{
-    handle, Delimiter, Group, Ident, Literal, LiteralKind, Punct, Rc, Spacing, Span, TokenStream,
-    TokenTree,
+    handle, DelimSpan, Delimiter, Group, Ident, Literal, LiteralKind, Punct, Rc, Spacing, Span,
+    TokenStream, TokenTree,
 };
 use std::char;
 use std::marker::PhantomData;
@@ -51,10 +51,18 @@ impl Decode for Group {
     fn decode(data: &mut &[u8]) -> Self {
         let delimiter = Delimiter::decode(data);
         let span = Span::decode(data);
+        let span_open = Span::decode(data);
+        let span_close = Span::decode(data);
         let stream = TokenStream::decode(data);
-        let mut ret = Group::new(delimiter, stream);
-        ret.set_span(span);
-        ret
+        Group {
+            delimiter,
+            stream,
+            span: DelimSpan {
+                join: span,
+                open: span_open,
+                close: span_close,
+            },
+        }
     }
 }
 

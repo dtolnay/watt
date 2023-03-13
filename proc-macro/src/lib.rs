@@ -18,6 +18,9 @@ mod encode;
 mod ffi;
 mod rc;
 
+pub mod extra;
+
+use crate::extra::DelimSpan;
 use crate::rc::Rc;
 use std::char;
 use std::cmp::Ordering;
@@ -297,7 +300,7 @@ impl Debug for TokenTree {
 pub struct Group {
     delimiter: Delimiter,
     stream: TokenStream,
-    span: Span,
+    span: DelimSpan,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -310,10 +313,15 @@ pub enum Delimiter {
 
 impl Group {
     pub fn new(delimiter: Delimiter, stream: TokenStream) -> Self {
+        let span = Span::call_site();
         Group {
             delimiter,
             stream,
-            span: Span::call_site(),
+            span: DelimSpan {
+                join: span,
+                open: span,
+                close: span,
+            },
         }
     }
 
@@ -326,19 +334,21 @@ impl Group {
     }
 
     pub fn span(&self) -> Span {
-        self.span
+        self.span.join
     }
 
     pub fn span_open(&self) -> Span {
-        self.span
+        self.span.open
     }
 
     pub fn span_close(&self) -> Span {
-        self.span
+        self.span.close
     }
 
     pub fn set_span(&mut self, span: Span) {
-        self.span = span;
+        self.span.join = span;
+        self.span.open = span;
+        self.span.close = span;
     }
 }
 
