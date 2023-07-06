@@ -1,6 +1,5 @@
 use crate::script::*;
 use hexf_parse::{parse_hexf32, parse_hexf64};
-use std::convert::TryFrom;
 use std::iter::Peekable;
 use std::str::{CharIndices, FromStr};
 use std::{f32, f64};

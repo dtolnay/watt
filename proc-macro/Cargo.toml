@@ -2,7 +2,7 @@
 name = "proc-macro2"
 version = "1.0.63"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [features]

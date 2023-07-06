@@ -27,7 +27,6 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt::{self, Debug, Display, Write as _};
 use std::hash::{Hash, Hasher};
-use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::RangeBounds;

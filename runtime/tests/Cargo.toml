@@ -6,7 +6,7 @@ authors = [
     "Hugo Guiroux <gx.hugo@gmail.com>",
     "David Tolnay <dtolnay@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]

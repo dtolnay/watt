@@ -1,6 +1,5 @@
 use crate::data::Data;
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::convert::TryFrom;
 
 pub fn encode(stream: TokenStream, data: &mut Data) -> Vec<u8> {
     let mut dst = Vec::new();
