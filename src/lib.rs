@@ -184,7 +184,7 @@
 //!
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
-#![doc(html_root_url = "https://docs.rs/watt/0.4.3")]
+#![doc(html_root_url = "https://docs.rs/watt/0.4.4")]
 #![allow(
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
