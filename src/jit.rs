@@ -136,7 +136,7 @@ fn mk_host_func(import: &ImportType, store: &Store) -> Func {
     // TODO: assert `import` is a function import
     assert_eq!(
         import.module(),
-        "watt-0.4",
+        "watt-0.5",
         "Wasm import from unknown module"
     );
     import::host_func(import.name(), store)
