@@ -55,7 +55,12 @@ impl Encode for Group {
 
 impl Encode for Delimiter {
     fn encode(self, dst: &mut Vec<u8>, _data: &mut Data) {
-        dst.push(self as u8);
+        dst.push(match self {
+            Delimiter::Parenthesis => 0,
+            Delimiter::Brace => 1,
+            Delimiter::Bracket => 2,
+            Delimiter::None => 3,
+        });
     }
 }
 
@@ -107,7 +112,10 @@ impl Encode for char {
 
 impl Encode for Spacing {
     fn encode(self, dst: &mut Vec<u8>, _data: &mut Data) {
-        dst.push(self as u8);
+        dst.push(match self {
+            Spacing::Alone => 0,
+            Spacing::Joint => 1,
+        });
     }
 }
 
