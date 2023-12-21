@@ -43,7 +43,7 @@ pub use self::val::Val;
 pub use self::valtype::{ValType, ValTypeVec};
 
 unsafe fn name_to_str<'a>(name: *const ffi::wasm_name_t) -> &'a str {
-    str::from_utf8_unchecked(slice::from_raw_parts((*name).data, (*name).size))
+    unsafe { str::from_utf8_unchecked(slice::from_raw_parts((*name).data, (*name).size)) }
 }
 
 pub mod current_memory {

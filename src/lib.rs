@@ -185,6 +185,7 @@
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
 
 #![doc(html_root_url = "https://docs.rs/watt/0.5.0")]
+#![deny(unsafe_op_in_unsafe_fn)]
 #![allow(
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
