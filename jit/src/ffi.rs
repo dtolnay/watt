@@ -277,10 +277,12 @@ macro_rules! extern_apis {
         pub unsafe extern "C" fn $name($($arg: $ty),*) $(-> $ret)? {
             static PTR: AtomicUsize = AtomicUsize::new(0);
             let _fnptr = resolve(&PTR, concat!(stringify!($name), "\0"));
-            mem::transmute::<
-                usize,
-                unsafe extern "C" fn($($ty),*) $( -> $ret)?
-            >(_fnptr)($($arg),*)
+            unsafe {
+                mem::transmute::<
+                    usize,
+                    unsafe extern "C" fn($($ty),*) $( -> $ret)?
+                >(_fnptr)($($arg),*)
+            }
         }
     )*);
 }

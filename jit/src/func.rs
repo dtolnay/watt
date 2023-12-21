@@ -16,7 +16,8 @@ impl Func {
         ptr: *mut c_void,
         dtor: unsafe extern "C" fn(*mut c_void),
     ) -> Func {
-        let raw = ffi::wasm_func_new_with_env(store.raw, ty.raw, callback, ptr, Some(dtor));
+        let raw =
+            unsafe { ffi::wasm_func_new_with_env(store.raw, ty.raw, callback, ptr, Some(dtor)) };
         assert!(!raw.is_null());
         Func { raw }
     }
@@ -50,13 +51,15 @@ unsafe impl WasmVal for u32 {
 
 unsafe impl WasmArg for u32 {
     unsafe fn from(ptr: *const ffi::wasm_val_t) -> (Self, *const ffi::wasm_val_t) {
-        ((*ptr).of.i32 as u32, ptr.offset(1))
+        unsafe { ((*ptr).of.i32 as u32, ptr.offset(1)) }
     }
 }
 
 unsafe impl WasmRet for u32 {
     unsafe fn into(value: Self, ptr: *mut ffi::wasm_val_t) {
-        (*ptr).of.i32 = value as i32;
+        unsafe {
+            (*ptr).of.i32 = value as i32;
+        }
     }
 }
 
@@ -69,7 +72,7 @@ unsafe impl WasmRet for () {
 }
 
 unsafe extern "C" fn dtor<T>(env: *mut c_void) {
-    drop(Box::from_raw(env.cast::<T>()));
+    drop(unsafe { Box::from_raw(env.cast::<T>()) });
 }
 
 pub fn func1<A, R, F>(func: F, store: &Store) -> Func
@@ -104,10 +107,12 @@ where
         R: WasmRet,
         F: Fn(A) -> R,
     {
-        let env = &*(env as *const F);
-        let (a, _args) = A::from((*args).data);
-        let ret = env(a);
-        R::into(ret, (*results).data);
+        unsafe {
+            let env = &*(env as *const F);
+            let (a, _args) = A::from((*args).data);
+            let ret = env(a);
+            R::into(ret, (*results).data);
+        }
         ptr::null_mut()
     }
 }
@@ -147,12 +152,14 @@ where
         R: WasmRet,
         F: Fn(&mut [u8], A, B) -> R,
     {
-        let env = &*(env as *const F);
-        let mem = super::current_memory::with(|m| m.as_slice());
-        let (a, args) = A::from((*args).data);
-        let (b, _args) = B::from(args);
-        let ret = env(&mut *mem, a, b);
-        R::into(ret, (*results).data);
+        unsafe {
+            let env = &*(env as *const F);
+            let mem = super::current_memory::with(|m| m.as_slice());
+            let (a, args) = A::from((*args).data);
+            let (b, _args) = B::from(args);
+            let ret = env(&mut *mem, a, b);
+            R::into(ret, (*results).data);
+        }
         ptr::null_mut()
     }
 }
