@@ -160,7 +160,7 @@ pub struct Module {
     pub(crate) globals: Vec<Global>,
     pub(crate) elems: Vec<Segment<Index>>, // initial values for tables
     pub(crate) data: Vec<Segment<u8>>,     // initial values for memories
-    pub(crate) start: Option<Index>,       // optionnal index to a start function
+    pub(crate) start: Option<Index>,       // optional index to a start function
     pub(crate) imports: Vec<Import>,
     pub(crate) exports: Vec<Export>,
 }

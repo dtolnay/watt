@@ -242,7 +242,7 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    /// Perform a unconditional branch to the nesting_levels+1 surrouding block.
+    /// Perform a unconditional branch to the nesting_levels+1 surrounding block.
     fn branch(&self, nesting_levels: u32) -> IntResult {
         Ok(Branch { nesting_levels })
     }
@@ -724,13 +724,13 @@ impl<'a> Interpreter<'a> {
         Ok(Continue)
     }
 
-    /// Update local idx based on the value poped from the stack
+    /// Update local idx based on the value popped from the stack
     fn set_local(&mut self, idx: Index) -> IntResult {
         self.stack[self.frame.stack_idx + (idx as usize)] = self.stack.pop().unwrap();
         Ok(Continue)
     }
 
-    /// Update the local idx without poping the top of the stack
+    /// Update the local idx without popping the top of the stack
     fn tee_local(&mut self, idx: Index) -> IntResult {
         self.stack[self.frame.stack_idx + (idx as usize)] = *self.stack.last().unwrap();
         Ok(Continue)
@@ -822,7 +822,7 @@ impl<'a> Interpreter<'a> {
 
     /// Call a function indirectly
     fn call_indirect(&mut self, idx: Index) -> IntResult {
-        // For the MVP, only the table at index 0 exists and is implicitly refered
+        // For the MVP, only the table at index 0 exists and is implicitly referenced
         let tab = &self.tables[self.frame.module().table_addrs[0]];
         let type_ = &self.frame.module().types[idx as usize];
         let indirect_idx = match self.stack.pop().unwrap() {
@@ -1057,7 +1057,7 @@ pub fn eval_const_expr(
     expr: &[Instr],
 ) -> Value {
     if expr.len() != 1 {
-        panic!("contant expressions must have exactly only one instruction");
+        panic!("constant expressions must have exactly only one instruction");
     }
 
     match expr[0] {

@@ -601,7 +601,7 @@ fn check_module(module: &ast::Module) -> Option<()> {
         .globals
         .extend(module.globals.iter().map(|global| &global.type_));
 
-    // finaly check everything else
+    // finally check everything else
     for type_ in &module.types {
         check_type(type_)?;
     }
