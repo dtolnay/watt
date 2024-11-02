@@ -186,6 +186,12 @@ impl Debug for TokenStream {
     }
 }
 
+impl Display for LexError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("cannot parse string into token stream")
+    }
+}
+
 impl Debug for LexError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("LexError")
