@@ -31,7 +31,7 @@ use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::RangeBounds;
-use std::str::FromStr;
+use std::str::{self, FromStr};
 
 mod handle {
     #[repr(transparent)]
@@ -697,23 +697,32 @@ impl Literal {
         Literal::_new(escaped)
     }
 
-    pub fn c_string(cstr: &CStr) -> Self {
-        let mut escaped = "c\"".to_string();
-        for b in cstr.to_bytes() {
-            match *b {
-                b'\t' => escaped.push_str(r"\t"),
-                b'\n' => escaped.push_str(r"\n"),
-                b'\r' => escaped.push_str(r"\r"),
-                b'"' => escaped.push_str("\\\""),
-                b'\\' => escaped.push_str("\\\\"),
-                b'\x20'..=b'\x7E' => escaped.push(*b as char),
-                _ => {
-                    let _ = write!(escaped, "\\x{:02X}", b);
+    pub fn c_string(string: &CStr) -> Self {
+        let mut repr = "c\"".to_string();
+        let mut bytes = string.to_bytes();
+        while !bytes.is_empty() {
+            let (valid, invalid) = match str::from_utf8(bytes) {
+                Ok(all_valid) => {
+                    bytes = b"";
+                    (all_valid, bytes)
                 }
+                Err(utf8_error) => {
+                    let (valid, rest) = bytes.split_at(utf8_error.valid_up_to());
+                    let valid = str::from_utf8(valid).unwrap();
+                    let invalid = utf8_error
+                        .error_len()
+                        .map_or(rest, |error_len| &rest[..error_len]);
+                    bytes = &bytes[valid.len() + invalid.len()..];
+                    (valid, invalid)
+                }
+            };
+            escape_utf8(valid, &mut repr);
+            for &byte in invalid {
+                let _ = write!(repr, r"\x{:02X}", byte);
             }
         }
-        escaped.push('"');
-        Literal::_new(escaped)
+        repr.push('"');
+        Literal::_new(repr)
     }
 
     pub fn span(&self) -> Span {
@@ -817,4 +826,28 @@ where
     let val = Box::leak(s.into());
     map.insert(val);
     val
+}
+
+fn escape_utf8(string: &str, repr: &mut String) {
+    let mut chars = string.chars();
+    while let Some(ch) = chars.next() {
+        if ch == '\0' {
+            repr.push_str(
+                if chars
+                    .as_str()
+                    .starts_with(|next| '0' <= next && next <= '7')
+                {
+                    // circumvent clippy::octal_escapes lint
+                    r"\x00"
+                } else {
+                    r"\0"
+                },
+            );
+        } else if ch == '\'' {
+            // escape_debug turns this into "\'" which is unnecessary.
+            repr.push(ch);
+        } else {
+            repr.extend(ch.escape_debug());
+        }
+    }
 }
