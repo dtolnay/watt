@@ -25,6 +25,7 @@ use crate::rc::Rc;
 use std::char;
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use std::ffi::CStr;
 use std::fmt::{self, Debug, Display, Write as _};
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
@@ -182,6 +183,12 @@ impl Debug for TokenStream {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("TokenStream ")?;
         f.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl Display for LexError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("cannot parse string into token stream")
     }
 }
 
@@ -675,6 +682,25 @@ impl Literal {
         for b in bytes {
             match *b {
                 b'\0' => escaped.push_str(r"\0"),
+                b'\t' => escaped.push_str(r"\t"),
+                b'\n' => escaped.push_str(r"\n"),
+                b'\r' => escaped.push_str(r"\r"),
+                b'"' => escaped.push_str("\\\""),
+                b'\\' => escaped.push_str("\\\\"),
+                b'\x20'..=b'\x7E' => escaped.push(*b as char),
+                _ => {
+                    let _ = write!(escaped, "\\x{:02X}", b);
+                }
+            }
+        }
+        escaped.push('"');
+        Literal::_new(escaped)
+    }
+
+    pub fn c_string(cstr: &CStr) -> Self {
+        let mut escaped = "c\"".to_string();
+        for b in cstr.to_bytes() {
+            match *b {
                 b'\t' => escaped.push_str(r"\t"),
                 b'\n' => escaped.push_str(r"\n"),
                 b'\r' => escaped.push_str(r"\r"),
