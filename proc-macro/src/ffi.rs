@@ -1,7 +1,7 @@
 use crate::{decode, encode, handle, LexError, TokenStream};
 use std::fmt::{self, Display};
 use std::marker::PhantomData;
-use std::panic::{self, PanicInfo};
+use std::panic::{self, PanicHookInfo};
 use std::sync::Once;
 
 #[link(wasm_import_module = "watt-0.5")]
@@ -26,7 +26,7 @@ fn set_wasm_panic_hook() {
     });
 }
 
-fn panic_hook(panic: &PanicInfo) {
+fn panic_hook(panic: &PanicHookInfo) {
     let string = panic.to_string();
     unsafe {
         let s = string_new(string.as_ptr(), string.len());
