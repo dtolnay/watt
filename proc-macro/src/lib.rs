@@ -816,6 +816,7 @@ where
     // NB: `static mut` and `unsafe` here should be ok because we are in wasm
     // which is always single-threaded right now.
     static mut INTERN: Option<HashSet<&'static str>> = None;
+    #[allow(static_mut_refs)]
     let intern = unsafe { &mut INTERN };
 
     let map = intern.get_or_insert_with(HashSet::new);
