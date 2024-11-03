@@ -295,6 +295,7 @@ pub trait FloatOp {
     fn reinterpret(self) -> Self::IntType;
 
     // Canonical NaN
+    #[allow(dead_code)]
     fn is_canonical_nan(self) -> bool;
 }
 

@@ -28,6 +28,7 @@ pub struct MemInst {
 
 pub struct GlobalInst {
     pub value: values::Value,
+    #[allow(dead_code)]
     pub mutable: bool,
 }
 
@@ -54,6 +55,7 @@ type FuncElem = Option<FuncAddr>;
 
 pub struct TableInst {
     pub elem: Vec<FuncElem>,
+    #[allow(dead_code)]
     pub max: Option<u32>,
 }
 
