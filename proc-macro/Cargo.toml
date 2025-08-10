@@ -1,6 +1,6 @@
 [package]
 name = "proc-macro2"
-version = "1.0.95"
+version = "1.0.96"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2021"
 publish = false
