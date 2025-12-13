@@ -12,8 +12,6 @@ Watt is a runtime for executing Rust procedural macros compiled as WebAssembly.
 watt = "0.5"
 ```
 
-*Compiler support: requires rustc 1.42+*
-
 <br>
 
 ## Rationale
