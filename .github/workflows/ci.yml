@@ -40,6 +40,12 @@ jobs:
       - run: cargo test --manifest-path runtime/tests/Cargo.toml
       - run: cargo test --manifest-path proc-macro/Cargo.toml
       - run: WATT_JIT=1 cargo check
+      - uses: actions/upload-artifact@v5
+        if: matrix.rust == 'nightly' && always()
+        with:
+          name: Cargo.lock
+          path: Cargo.lock
+        continue-on-error: true
 
   doc:
     name: Documentation
