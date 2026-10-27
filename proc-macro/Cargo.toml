@@ -8,3 +8,6 @@ publish = false
 [features]
 proc-macro = []
 default = ["proc-macro"]
+
+[dependencies]
+unicode-ident = "1.0"

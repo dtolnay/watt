@@ -493,14 +493,19 @@ impl Ident {
 
         #[inline]
         fn is_ident_start(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_'
-            /*|| (c > '\x7f' && unicode_ident::is_xid_start(c))*/ // TODO
+            ('a' <= c && c <= 'z')
+                || ('A' <= c && c <= 'Z')
+                || c == '_'
+                || (c > '\x7f' && unicode_ident::is_xid_start(c))
         }
 
         #[inline]
         fn is_ident_continue(c: char) -> bool {
-            ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' || ('0' <= c && c <= '9')
-            /*|| (c > '\x7f' && unicode_ident::is_xid_continue(c))*/ // TODO
+            ('a' <= c && c <= 'z')
+                || ('A' <= c && c <= 'Z')
+                || c == '_'
+                || ('0' <= c && c <= '9')
+                || (c > '\x7f' && unicode_ident::is_xid_continue(c))
         }
     }
 }
